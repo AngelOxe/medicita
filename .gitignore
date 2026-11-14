@@ -1,0 +1,32 @@
+﻿# Configuración privada
+application.properties
+application.yml
+application.yaml
+!application.properties.example
+!application.yml.example
+!application.yaml.example
+
+.env
+.env.*
+!.env.example
+
+# Backend: archivos generados
+**/target/
+*.log
+
+# Frontend: dependencias y build
+**/node_modules/
+**/dist/
+
+# Editores y sistema operativo
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Certificados y claves privadas
+*.pem
+*.key
+*.p12
+*.pfx
