@@ -1,0 +1,11 @@
+spring.application.name=medicita
+server.port=8085
+
+# Copiar este archivo como application.properties y completar los datos locales
+spring.datasource.url=jdbc:postgresql://localhost:5432/medicita
+spring.datasource.username=CAMBIAR
+spring.datasource.password=CAMBIAR
+
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.open-in-view=false
+spring.flyway.enabled=true
