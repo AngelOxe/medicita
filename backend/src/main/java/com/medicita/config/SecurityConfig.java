@@ -58,6 +58,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/logout")
                         .authenticated()
 
+                        .requestMatchers("/api/usuarios", "/api/usuarios/**")
+                        .hasRole("ADMIN")
+
                         .anyRequest()
                         .denyAll()
                 )
