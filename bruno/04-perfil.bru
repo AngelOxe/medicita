@@ -1,0 +1,27 @@
+meta {
+  name: 04 - Consultar perfil
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/perfil
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("El token permite consultar el perfil correcto", function () {
+    expect(res.getStatus()).to.equal(200);
+
+    const usuario = res.getBody();
+    expect(usuario.id).to.equal(bru.getVar("pacienteId"));
+    expect(usuario.email).to.equal(bru.getVar("emailPrueba"));
+    expect(usuario.rol).to.equal("PACIENTE");
+    expect(usuario).not.to.have.property("passwordHash");
+  });
+}
