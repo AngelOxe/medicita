@@ -1,1 +1,36 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* Azul de marca (botones, enlaces, fechas seleccionadas) */
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-200: #bae6fd;
+  --color-brand-600: #0284c7;
+  --color-brand-700: #0369a1;
+
+  /* Menú lateral y panel oscuro del login */
+  --color-sidebar: #164e63;
+  --color-sidebar-active: #22657c;
+  --color-sidebar-deep: #0c3c51;
+
+  /* Superficies y texto */
+  --color-surface: #f8fafc;
+  --color-line: #e2e8f0;
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
+
+  /* Estados (texto y fondo del badge) */
+  --color-ok: #15803d;
+  --color-ok-bg: #f0fdf4;
+  --color-warn: #b45309;
+  --color-warn-bg: #fffbeb;
+  --color-danger: #dc2626;
+  --color-danger-bg: #fef2f2;
+  --color-neutral-bg: #e2e8f0;
+}
+
+body {
+  @apply bg-surface font-sans text-ink;
+}
