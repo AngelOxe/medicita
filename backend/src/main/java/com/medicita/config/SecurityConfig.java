@@ -52,6 +52,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/perfil")
                         .authenticated()
 
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout")
+                        .authenticated()
+
                         .anyRequest()
                         .denyAll()
                 )
