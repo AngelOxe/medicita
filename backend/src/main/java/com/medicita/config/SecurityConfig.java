@@ -12,6 +12,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import tools.jackson.databind.json.JsonMapper;
+import com.medicita.security.AutenticacionJwtService;
+import com.medicita.security.JwtAuthenticationFilter;
+import com.medicita.security.JwtService;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,9 +27,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            JsonMapper jsonMapper) throws Exception {
-
+        HttpSecurity http,
+        JsonMapper jsonMapper,
+        JwtService jwtService,
+        AutenticacionJwtService autenticacionJwtService) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -43,6 +48,9 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST, "/api/auth/login")
                         .permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/perfil")
+                        .authenticated()
 
                         .anyRequest()
                         .denyAll()
@@ -69,7 +77,14 @@ public class SecurityConfig {
                                 )
                         )
                 );
-
+                http.addFilterBefore(
+        new JwtAuthenticationFilter(
+                jwtService,
+                autenticacionJwtService,
+                jsonMapper
+        ),
+        UsernamePasswordAuthenticationFilter.class
+);
         return http.build();
     }
 
