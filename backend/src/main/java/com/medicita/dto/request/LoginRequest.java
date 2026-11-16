@@ -3,6 +3,7 @@ package com.medicita.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import com.medicita.validation.MaxBytesUtf8;
 
 public record LoginRequest(
 
@@ -13,6 +14,7 @@ public record LoginRequest(
 
         @NotBlank(message = "La contrasena es obligatoria")
         @Size(max = 256, message = "La contrasena es demasiado larga")
+        @MaxBytesUtf8(max = 72)
         String password
 
 ) {

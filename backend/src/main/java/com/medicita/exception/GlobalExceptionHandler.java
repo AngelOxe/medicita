@@ -89,6 +89,8 @@ public class GlobalExceptionHandler {
 
         log.error("Error inesperado al procesar una solicitud", exception);
 
+        
+
         return responder(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Ocurrio un error interno",
@@ -96,6 +98,24 @@ public class GlobalExceptionHandler {
                 List.of()
         );
     }
+        @ExceptionHandler(CorreoDuplicadoException.class)
+public ResponseEntity<ApiError> manejarCorreoDuplicado(
+        CorreoDuplicadoException exception,
+        HttpServletRequest request) {
+
+    return responder(
+            HttpStatus.valueOf(422),
+            exception.getMessage(),
+            request,
+            List.of(
+                    new ApiError.FieldError(
+                            "email",
+                            exception.getMessage()
+                    )
+            )
+    );
+}
+
 
     private ResponseEntity<ApiError> responder(
             HttpStatus status,
