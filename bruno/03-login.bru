@@ -1,0 +1,44 @@
+meta {
+  name: 03 - Login del paciente
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{emailPrueba}}",
+    "password": "Paciente#2026"
+  }
+}
+
+script:pre-request {
+  bru.deleteVar("token");
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    bru.setVar("token", res.getBody().token);
+  }
+}
+
+tests {
+  test("Login devuelve token del paciente registrado", function () {
+    expect(res.getStatus()).to.equal(200);
+
+    const respuesta = res.getBody();
+    expect(respuesta.tipo).to.equal("Bearer");
+    expect(respuesta.token).to.be.a("string").and.not.empty;
+    expect(respuesta.usuario.id).to.equal(bru.getVar("pacienteId"));
+    expect(respuesta.usuario.rol).to.equal("PACIENTE");
+  });
+}

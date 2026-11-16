@@ -1,0 +1,23 @@
+meta {
+  name: 06 - Rechazar token revocado
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/perfil
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("El token usado en logout ya no permite acceder", function () {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getBody().status).to.equal(401);
+    expect(res.getBody().path).to.equal("/api/perfil");
+  });
+}

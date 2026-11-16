@@ -1,0 +1,51 @@
+meta {
+  name: 02 - Registrar paciente
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "nombre": "Paciente Bruno",
+    "email": "{{emailPrueba}}",
+    "telefono": "+525500000000",
+    "password": "Paciente#2026"
+  }
+}
+
+script:pre-request {
+  bru.deleteVar("token");
+  bru.deleteVar("pacienteId");
+
+  const identificador = Date.now() + "-" + Math.random().toString(36).slice(2);
+  bru.setVar("emailPrueba", "bruno." + identificador + "@example.com");
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("pacienteId", res.getBody().id);
+  }
+}
+
+tests {
+  test("Crea un paciente sin exponer su contrasena", function () {
+    expect(res.getStatus()).to.equal(201);
+
+    const usuario = res.getBody();
+    expect(usuario.rol).to.equal("PACIENTE");
+    expect(usuario.activo).to.equal(true);
+    expect(usuario.email).to.equal(bru.getVar("emailPrueba"));
+    expect(usuario).not.to.have.property("password");
+    expect(usuario).not.to.have.property("passwordHash");
+  });
+}
