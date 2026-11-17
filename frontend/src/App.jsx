@@ -1,7 +1,12 @@
-function App() {
+
+  import { Navigate, Route, Routes } from 'react-router-dom'
+import UiDemo from './pages/UiDemo'
+
+export default function App() {
   return (
-    <h1 className="p-8 text-3xl font-bold text-teal-600">MediCita</h1>
+    <Routes>
+      <Route path="/ui-demo" element={<UiDemo />} />
+      <Route path="*" element={<Navigate to="/ui-demo" replace />} />
+    </Routes>
   )
 }
-
-export default App
