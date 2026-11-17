@@ -49,7 +49,7 @@ public class SecurityConfig {
         "/api/auth/register"
 )
 .permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login")
+                        .requestMatchers(HttpMethod.GET, "/api/salud")
                         .permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/perfil")
