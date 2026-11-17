@@ -8,6 +8,8 @@ import Pendiente from './pages/Pendiente'
 import UiDemo from './pages/UiDemo'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 export default function App() {
   return (
@@ -39,6 +41,8 @@ export default function App() {
       </Route>
       <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Register />} />
+          <Route path="/recuperar" element={<ForgotPassword />} />
+          <Route path="/restablecer" element={<ResetPassword />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
