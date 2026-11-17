@@ -5,13 +5,16 @@ import '@fontsource-variable/inter'
 import './index.css'
 import App from './App.jsx'
 import ToastProvider from './components/ui/ToastProvider.jsx'
+import AuthProvider from './context/AuthProvider.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <ToastProvider>
-        <App />
-      </ToastProvider>
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+</ToastProvider>
     </BrowserRouter>
   </StrictMode>,
 )
