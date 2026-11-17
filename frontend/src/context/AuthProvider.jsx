@@ -33,8 +33,10 @@ export default function AuthProvider({ children }) {
         localStorage.setItem(USER_KEY, JSON.stringify(perfil))
         setUser(perfil)
       })
-      .catch(() => {
-        if (active) clearSession()
+            .catch((error) => {
+        // Solo se cierra la sesión si el servidor respondió con error (401/403).
+        // Si no hay conexión, se conserva la sesión guardada.
+        if (active && error.response) clearSession()
       })
       .finally(() => {
         if (active) setChecking(false)
