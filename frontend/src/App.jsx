@@ -6,6 +6,8 @@ import { ROLES } from './lib/roles'
 import Forbidden from './pages/Forbidden'
 import Pendiente from './pages/Pendiente'
 import UiDemo from './pages/UiDemo'
+import Login from './pages/Login'
+import Register from './pages/Register'
 
 export default function App() {
   return (
@@ -35,6 +37,8 @@ export default function App() {
           </Route>
         </Route>
       </Route>
+      <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Register />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
