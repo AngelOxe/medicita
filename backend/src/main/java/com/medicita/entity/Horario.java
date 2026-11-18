@@ -1,6 +1,7 @@
 package com.medicita.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +26,8 @@ public class Horario {
     @Column(nullable = false)
     private boolean activo = true;
 
+    // @BatchSize: los servicios de varios horarios se cargan en una sola consulta (evita el N+1)
+    @BatchSize(size = 50)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "horario_servicio",

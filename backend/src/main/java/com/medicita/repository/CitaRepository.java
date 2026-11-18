@@ -41,4 +41,14 @@ public interface CitaRepository
         @Param("inicio") OffsetDateTime inicio,
         @Param("fin") OffsetDateTime fin
     );
+
+    /** Citas confirmadas que aun no empiezan, con su servicio (revision de cobertura de la agenda). */
+    @Query("""
+        SELECT c
+        FROM Cita c
+        JOIN FETCH c.servicio
+        WHERE c.estado = 'confirmada'
+          AND c.inicio > :ahora
+        """)
+    List<Cita> buscarConfirmadasFuturas(@Param("ahora") OffsetDateTime ahora);
 }
