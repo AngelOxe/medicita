@@ -3,15 +3,19 @@ package com.medicita.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
 
@@ -144,6 +148,110 @@ public ResponseEntity<ApiError> manejarCorreoDuplicado(
                         )
                 )
         );
+    }
+
+    // ---------- 422: reglas de negocio ----------
+
+    @ExceptionHandler(ReglaNegocioException.class)
+    public ResponseEntity<ApiError> manejarReglaNegocio(
+            ReglaNegocioException exception,
+            HttpServletRequest request) {
+
+        List<ApiError.FieldError> errores = exception.getCampo() == null
+                ? List.of()
+                : List.of(new ApiError.FieldError(
+                        exception.getCampo(),
+                        exception.getMessage()));
+
+        return responder(
+                HttpStatus.valueOf(422),
+                exception.getMessage(),
+                request,
+                errores
+        );
+    }
+
+    /**
+     * La base de datos rechazo la operacion. Se revisa el SQLState para saber por que:
+     * solo 23P01 significa "cita traslapada"; un valor repetido (23505) es otro error.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> manejarIntegridad(
+            DataIntegrityViolationException exception,
+            HttpServletRequest request) {
+
+        String sqlState = obtenerSqlState(exception);
+
+        if ("23P01".equals(sqlState)) {
+            return responder(
+                    HttpStatus.valueOf(422),
+                    "El horario seleccionado ya no esta disponible",
+                    request,
+                    List.of(new ApiError.FieldError("inicio", "Horario ocupado"))
+            );
+        }
+        if ("23505".equals(sqlState)) {
+            return responder(
+                    HttpStatus.valueOf(422),
+                    "Ya existe un registro con esos datos",
+                    request,
+                    List.of()
+            );
+        }
+        if ("23503".equals(sqlState)) {
+            return responder(
+                    HttpStatus.valueOf(422),
+                    "No se puede completar la operacion porque hay registros relacionados",
+                    request,
+                    List.of()
+            );
+        }
+
+        log.error("Error de integridad no esperado", exception);
+        return responder(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Ocurrio un error interno",
+                request,
+                List.of()
+        );
+    }
+
+    // ---------- 400: parametros de la URL ----------
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> manejarTipoIncorrecto(
+            MethodArgumentTypeMismatchException exception,
+            HttpServletRequest request) {
+
+        return responder(
+                HttpStatus.BAD_REQUEST,
+                "Valor invalido para el parametro '" + exception.getName() + "'",
+                request,
+                List.of()
+        );
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiError> manejarParametroFaltante(
+            MissingServletRequestParameterException exception,
+            HttpServletRequest request) {
+
+        return responder(
+                HttpStatus.BAD_REQUEST,
+                "Falta el parametro '" + exception.getParameterName() + "'",
+                request,
+                List.of()
+        );
+    }
+
+    /** Recorre la cadena de causas hasta encontrar la SQLException original. */
+    private String obtenerSqlState(Throwable exception) {
+        for (Throwable causa = exception; causa != null; causa = causa.getCause()) {
+            if (causa instanceof SQLException sql && sql.getSQLState() != null) {
+                return sql.getSQLState();
+            }
+        }
+        return null;
     }
 
     private ResponseEntity<ApiError> responder(
