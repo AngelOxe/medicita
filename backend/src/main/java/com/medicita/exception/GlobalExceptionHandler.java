@@ -115,7 +115,36 @@ public ResponseEntity<ApiError> manejarCorreoDuplicado(
             )
     );
 }
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    public ResponseEntity<ApiError> manejarRecursoNoEncontrado(
+            RecursoNoEncontradoException exception,
+            HttpServletRequest request) {
 
+        return responder(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage(),
+                request,
+                List.of()
+        );
+    }
+
+    @ExceptionHandler(NombreServicioDuplicadoException.class)
+    public ResponseEntity<ApiError> manejarNombreServicioDuplicado(
+            NombreServicioDuplicadoException exception,
+            HttpServletRequest request) {
+
+        return responder(
+                HttpStatus.valueOf(422),
+                exception.getMessage(),
+                request,
+                List.of(
+                        new ApiError.FieldError(
+                                "nombre",
+                                exception.getMessage()
+                        )
+                )
+        );
+    }
 
     private ResponseEntity<ApiError> responder(
             HttpStatus status,
