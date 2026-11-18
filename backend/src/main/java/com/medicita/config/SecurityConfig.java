@@ -46,7 +46,9 @@ public class SecurityConfig {
                         .requestMatchers(
         HttpMethod.POST,
         "/api/auth/login",
-        "/api/auth/register"
+        "/api/auth/register",
+        "/api/auth/forgot-password",
+        "/api/auth/reset-password"
 )
 .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/salud")
@@ -60,6 +62,22 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/usuarios", "/api/usuarios/**")
                         .hasRole("ADMIN")
+
+                        // Servicios: todos consultan (el paciente solo ve activos); ADMIN y MEDICO modifican.
+                        .requestMatchers(HttpMethod.GET, "/api/servicios", "/api/servicios/*")
+                        .authenticated()
+                        .requestMatchers("/api/servicios", "/api/servicios/*")
+                        .hasAnyRole("ADMIN", "MEDICO")
+
+                        // Agenda: solo ADMIN y MEDICO.
+                        .requestMatchers(
+                                "/api/horarios", "/api/horarios/**",
+                                "/api/bloqueos", "/api/bloqueos/**")
+                        .hasAnyRole("ADMIN", "MEDICO")
+
+                        // Disponibilidad: cualquier usuario autenticado.
+                        .requestMatchers(HttpMethod.GET, "/api/disponibilidad")
+                        .authenticated()
 
                         .anyRequest()
                         .denyAll()
