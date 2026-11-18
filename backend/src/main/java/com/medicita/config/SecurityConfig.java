@@ -79,6 +79,21 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/disponibilidad")
                         .authenticated()
 
+                        // Citas: aqui solo se decide el rol; si la cita es "suya" lo decide CitaService.
+                        // /mias va antes que /* para que "mias" no se tome como un id.
+                        .requestMatchers(HttpMethod.POST, "/api/citas")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/citas/mias")
+                        .hasRole("PACIENTE")
+                        .requestMatchers(HttpMethod.GET, "/api/citas")
+                        .hasAnyRole("ADMIN", "MEDICO")
+                        .requestMatchers(HttpMethod.GET, "/api/citas/*")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/citas/*/cancelar")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/citas/*/estado")
+                        .hasAnyRole("ADMIN", "MEDICO")
+
                         .anyRequest()
                         .denyAll()
                 )
