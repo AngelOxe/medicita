@@ -5,6 +5,7 @@ import AppLayout from './components/layout/AppLayout'
 import { ROLES } from './lib/roles'
 import Forbidden from './pages/Forbidden'
 import Pendiente from './pages/Pendiente'
+import Servicios from './pages/Servicios'
 import UiDemo from './pages/UiDemo'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -28,7 +29,7 @@ export default function App() {
           <Route element={<ProtectedRoute roles={[ROLES.ADMIN, ROLES.MEDICO]} />}>
             <Route path="/dashboard" element={<Pendiente titulo="Dashboard" />} />
             <Route path="/citas" element={<Pendiente titulo="Gestión de citas" />} />
-            <Route path="/servicios" element={<Pendiente titulo="Servicios" />} />
+            <Route path="/servicios" element={<Servicios />} />
             <Route path="/horarios" element={<Pendiente titulo="Horarios" />} />
           </Route>
 
