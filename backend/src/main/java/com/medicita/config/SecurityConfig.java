@@ -54,8 +54,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/salud")
                         .permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/perfil")
+                        .requestMatchers("/api/perfil")
                         .authenticated()
+
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard/resumen")
+                        .hasAnyRole("ADMIN", "MEDICO")
 
                         .requestMatchers(HttpMethod.POST, "/api/auth/logout")
                         .authenticated()
