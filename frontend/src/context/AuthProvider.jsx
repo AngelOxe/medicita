@@ -69,9 +69,15 @@ export default function AuthProvider({ children }) {
     clearSession()
   }, [clearSession])
 
+  // Tras editar el perfil, se actualiza la sesión para que el menú muestre el nombre nuevo
+  const updateUser = useCallback((usuario) => {
+    localStorage.setItem(USER_KEY, JSON.stringify(usuario))
+    setUser(usuario)
+  }, [])
+
   const value = useMemo(
-    () => ({ user, checking, login, logout, isAuthenticated: Boolean(user) }),
-    [user, checking, login, logout],
+    () => ({ user, checking, login, logout, updateUser, isAuthenticated: Boolean(user) }),
+    [user, checking, login, logout, updateUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
