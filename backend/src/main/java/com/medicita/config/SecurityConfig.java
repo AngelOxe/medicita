@@ -66,17 +66,21 @@ public class SecurityConfig {
                         .requestMatchers("/api/usuarios", "/api/usuarios/**")
                         .hasRole("ADMIN")
 
-                        // Servicios: todos consultan (el paciente solo ve activos); ADMIN y MEDICO modifican.
+                        // Servicios: todos consultan (el paciente solo ve activos); solo el ADMIN modifica el catalogo.
                         .requestMatchers(HttpMethod.GET, "/api/servicios", "/api/servicios/*")
                         .authenticated()
                         .requestMatchers("/api/servicios", "/api/servicios/*")
-                        .hasAnyRole("ADMIN", "MEDICO")
+                        .hasRole("ADMIN")
 
-                        // Agenda: solo ADMIN y MEDICO.
-                        .requestMatchers(
+                        // Agenda (horarios y bloqueos): ADMIN y MEDICO consultan; solo el MEDICO la modifica.
+                        .requestMatchers(HttpMethod.GET,
                                 "/api/horarios", "/api/horarios/**",
                                 "/api/bloqueos", "/api/bloqueos/**")
                         .hasAnyRole("ADMIN", "MEDICO")
+                        .requestMatchers(
+                                "/api/horarios", "/api/horarios/**",
+                                "/api/bloqueos", "/api/bloqueos/**")
+                        .hasRole("MEDICO")
 
                         // Disponibilidad: cualquier usuario autenticado.
                         .requestMatchers(HttpMethod.GET, "/api/disponibilidad")
@@ -94,8 +98,9 @@ public class SecurityConfig {
                         .authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/citas/*/cancelar")
                         .authenticated()
+                        // Marcar completada o no asistio es un acto de la consulta: solo el MEDICO.
                         .requestMatchers(HttpMethod.PATCH, "/api/citas/*/estado")
-                        .hasAnyRole("ADMIN", "MEDICO")
+                        .hasRole("MEDICO")
 
                         .anyRequest()
                         .denyAll()

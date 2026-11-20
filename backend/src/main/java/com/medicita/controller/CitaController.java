@@ -109,7 +109,7 @@ public class CitaController {
         return citaService.cancelar(id, actor);
     }
 
-    /** Cuerpo: {"estado":"completada"} o {"estado":"no_asistio"}. Solo ADMIN y MEDICO. */
+    /** Cuerpo: {"estado":"completada"} o {"estado":"no_asistio"}. Solo MEDICO. */
     @PatchMapping("/{id}/estado")
     public CitaResponse cambiarEstado(
             @PathVariable Long id,

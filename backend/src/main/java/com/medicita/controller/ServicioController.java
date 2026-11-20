@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Catalogo de servicios. Las reglas por rol viven en SecurityConfig
- * (GET: autenticados; POST, PUT y DELETE: ADMIN y MEDICO).
+ * (GET: autenticados; POST, PUT y DELETE: solo ADMIN).
  */
 @RestController
 @RequestMapping("/api/servicios")

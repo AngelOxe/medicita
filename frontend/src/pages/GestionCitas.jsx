@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useAuth } from '../context/useAuth'
 import { CalendarX2, Search } from 'lucide-react'
 import Calendario from '../components/calendario/Calendario'
 import EstadoCitaBadge from '../components/citas/EstadoCitaBadge'
@@ -41,6 +42,8 @@ const ACCIONES = {
 
 export default function GestionCitas() {
   const { show } = useToast()
+  // El médico atiende (calendario y cierre de citas); el administrador supervisa y cancela
+  const esMedico = useAuth().user.rol === 'MEDICO'
   const [busqueda, setBusqueda] = useState('')
   const [estado, setEstado] = useState('')
   const [fecha, setFecha] = useState('')
@@ -49,7 +52,7 @@ export default function GestionCitas() {
 
   const [pendiente, setPendiente] = useState(null) // { accion, cita }
   const [procesando, setProcesando] = useState(false)
-  const [vista, setVista] = useState('lista') // 'lista' | 'calendario'
+  const [vista, setVista] = useState(esMedico ? 'calendario' : 'lista') // 'lista' | 'calendario'
 
   // Totales por estado de la parte de arriba; se vuelven a pedir cuando una cita cambia de estado
   const [resumen, setResumen] = useState(null)
@@ -93,12 +96,16 @@ export default function GestionCitas() {
       render: (c) =>
         c.estado === 'confirmada' ? (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium">
-            <button type="button" onClick={() => setPendiente({ accion: 'completada', cita: c })} className="text-brand-600 hover:underline">
-              Completada
-            </button>
-            <button type="button" onClick={() => setPendiente({ accion: 'no_asistio', cita: c })} className="text-warn hover:underline">
-              No asistió
-            </button>
+            {esMedico && (
+              <>
+                <button type="button" onClick={() => setPendiente({ accion: 'completada', cita: c })} className="text-brand-600 hover:underline">
+                  Completada
+                </button>
+                <button type="button" onClick={() => setPendiente({ accion: 'no_asistio', cita: c })} className="text-warn hover:underline">
+                  No asistió
+                </button>
+              </>
+            )}
             <button type="button" onClick={() => setPendiente({ accion: 'cancelar', cita: c })} className="text-danger hover:underline">
               Cancelar
             </button>
@@ -116,8 +123,12 @@ export default function GestionCitas() {
     <div>
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
-          <h1 className="text-2xl font-bold text-ink">Gestión de citas</h1>
-          <p className="mt-1 text-sm text-muted">Agenda completa del consultorio.</p>
+          <h1 className="text-2xl font-bold text-ink">{esMedico ? 'Mi agenda' : 'Gestión de citas'}</h1>
+          <p className="mt-1 text-sm text-muted">
+            {esMedico
+              ? 'Tus citas por día, semana y mes. Al terminar cada consulta márcala como completada o no asistió.'
+              : 'Supervisión de todas las citas del consultorio. Puedes cancelarlas; el médico las cierra.'}
+          </p>
         </div>
         <div role="group" aria-label="Forma de ver las citas" className="inline-flex self-start rounded-lg border border-line bg-white p-0.5">
           {[['lista', 'Lista'], ['calendario', 'Calendario']].map(([id, texto]) => (

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAuth } from '../context/useAuth'
 import Calendario from '../components/calendario/Calendario'
 import BloqueosTab from '../components/horarios/BloqueosTab'
 import HorariosTab from '../components/horarios/HorariosTab'
@@ -10,14 +11,30 @@ const TABS = [
 ]
 
 export default function Horarios() {
+  const { user } = useAuth()
   const [tab, setTab] = useState('calendario')
+
+  // El administrador solo consulta la agenda; el médico es quien define sus jornadas y bloqueos
+  if (user.rol !== 'MEDICO') {
+    return (
+      <div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-ink">Horarios</h1>
+          <p className="mt-1 text-sm text-muted">
+            Agenda del médico, solo de consulta. Las jornadas y los bloqueos los define el médico.
+          </p>
+        </div>
+        <Calendario />
+      </div>
+    )
+  }
 
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">Horarios</h1>
+        <h1 className="text-2xl font-bold text-ink">Mis horarios</h1>
         <p className="mt-1 text-sm text-muted">
-          Jornadas de atención, los servicios que se ofrecen en cada una y los bloqueos de agenda.
+          Tus jornadas de atención, los servicios que ofreces en cada una y los bloqueos de tu agenda.
         </p>
       </div>
 

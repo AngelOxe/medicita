@@ -24,19 +24,24 @@ function Tarjeta({ icono: Icono, titulo, valor }) {
 
 export default function Dashboard() {
   const { user } = useAuth()
+  // El médico ve su día a día; el administrador ve los totales del consultorio
+  const esMedico = user.rol === 'MEDICO'
   const [datos, setDatos] = useState(null) // { resumen, hoy }
   const [error, setError] = useState('')
   const [intento, setIntento] = useState(0)
 
   useEffect(() => {
     let activo = true
-    Promise.all([obtenerResumen(), listarCitas({ fecha: hoyISO(), size: 50, page: 0, orden: 'asc' })])
+    Promise.all([
+      obtenerResumen(),
+      esMedico ? listarCitas({ fecha: hoyISO(), size: 50, page: 0, orden: 'asc' }) : Promise.resolve({ content: [] }),
+    ])
       .then(([resumen, hoy]) => activo && (setDatos({ resumen, hoy: hoy.content.filter((c) => c.estado !== 'cancelada') }), setError('')))
       .catch((e) => activo && setError(getErrorMessage(e)))
     return () => {
       activo = false
     }
-  }, [intento])
+  }, [intento, esMedico])
 
   const resumen = datos?.resumen
   const hoy = hoyISO()
@@ -44,7 +49,9 @@ export default function Dashboard() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-ink">Hola, {user.nombre.split(' ')[0]}</h1>
-      <p className="mt-1 text-sm text-muted">Resumen del consultorio.</p>
+      <p className="mt-1 text-sm text-muted">
+        {esMedico ? 'Tu jornada de hoy y la actividad de la semana.' : 'Resumen general del consultorio.'}
+      </p>
 
       {error && (
         <div role="alert" className="mt-6 rounded-xl border border-line bg-white p-8 text-center">
@@ -63,14 +70,15 @@ export default function Dashboard() {
 
       {datos && (
         <>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className={`mt-6 grid gap-4 sm:grid-cols-2 ${esMedico ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
             <Tarjeta icono={CalendarCheck} titulo="Citas de hoy" valor={resumen.citasHoy} />
             <Tarjeta icono={CalendarClock} titulo="Próximas confirmadas" valor={resumen.proximasConfirmadas} />
-            <Tarjeta icono={Users} titulo="Pacientes activos" valor={resumen.pacientesActivos} />
+            {!esMedico && <Tarjeta icono={Users} titulo="Pacientes activos" valor={resumen.pacientesActivos} />}
             <Tarjeta icono={CheckCircle2} titulo="Completadas" valor={resumen.completadas} />
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div className={`mt-6 grid gap-6 ${esMedico ? 'lg:grid-cols-2' : ''}`}>
+            {esMedico && (
             <section className="rounded-xl border border-line bg-white p-5">
               <h2 className="text-sm font-semibold text-ink">Agenda de hoy</h2>
               <p className="text-xs text-muted first-letter:uppercase">{formatoFecha(hoy, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
@@ -91,6 +99,7 @@ export default function Dashboard() {
                 </ul>
               )}
             </section>
+            )}
 
             <section className="rounded-xl border border-line bg-white p-5">
               <h2 className="text-sm font-semibold text-ink">Actividad de la semana</h2>
@@ -108,10 +117,12 @@ export default function Dashboard() {
             </section>
           </div>
 
-          <section className="mt-6">
-            <h2 className="mb-3 text-sm font-semibold text-ink">Citas por estado</h2>
-            <ResumenCitas porEstado={resumen.porEstado} />
-          </section>
+          {!esMedico && (
+            <section className="mt-6">
+              <h2 className="mb-3 text-sm font-semibold text-ink">Citas por estado</h2>
+              <ResumenCitas porEstado={resumen.porEstado} />
+            </section>
+          )}
         </>
       )}
     </div>
