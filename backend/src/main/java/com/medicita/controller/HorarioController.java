@@ -62,10 +62,14 @@ public class HorarioController {
         return horarioService.actualizar(id, request);
     }
 
-    /** Borrado logico: desactiva el horario. */
+    /** Sin parametros desactiva el horario (borrado logico); con ?definitivo=true lo borra. */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void desactivar(@PathVariable Long id) {
-        horarioService.desactivar(id);
+    public void eliminar(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean definitivo) {
+        if (definitivo) {
+            horarioService.eliminar(id);
+        } else {
+            horarioService.desactivar(id);
+        }
     }
 }

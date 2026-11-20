@@ -66,21 +66,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/usuarios", "/api/usuarios/**")
                         .hasRole("ADMIN")
 
-                        // Servicios: todos consultan (el paciente solo ve activos); solo el ADMIN modifica el catalogo.
+                        // Servicios: todos consultan (el paciente solo ve activos); ADMIN y MEDICO modifican.
                         .requestMatchers(HttpMethod.GET, "/api/servicios", "/api/servicios/*")
                         .authenticated()
                         .requestMatchers("/api/servicios", "/api/servicios/*")
-                        .hasRole("ADMIN")
-
-                        // Agenda (horarios y bloqueos): ADMIN y MEDICO consultan; solo el MEDICO la modifica.
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/horarios", "/api/horarios/**",
-                                "/api/bloqueos", "/api/bloqueos/**")
                         .hasAnyRole("ADMIN", "MEDICO")
+
+                        // Agenda (horarios y bloqueos): solo ADMIN y MEDICO.
                         .requestMatchers(
                                 "/api/horarios", "/api/horarios/**",
                                 "/api/bloqueos", "/api/bloqueos/**")
-                        .hasRole("MEDICO")
+                        .hasAnyRole("ADMIN", "MEDICO")
 
                         // Disponibilidad: cualquier usuario autenticado.
                         .requestMatchers(HttpMethod.GET, "/api/disponibilidad")

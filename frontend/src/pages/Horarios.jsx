@@ -11,30 +11,17 @@ const TABS = [
 ]
 
 export default function Horarios() {
-  const { user } = useAuth()
+  const esMedico = useAuth().user.rol === 'MEDICO'
   const [tab, setTab] = useState('calendario')
-
-  // El administrador solo consulta la agenda; el médico es quien define sus jornadas y bloqueos
-  if (user.rol !== 'MEDICO') {
-    return (
-      <div>
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-ink">Horarios</h1>
-          <p className="mt-1 text-sm text-muted">
-            Agenda del médico, solo de consulta. Las jornadas y los bloqueos los define el médico.
-          </p>
-        </div>
-        <Calendario />
-      </div>
-    )
-  }
 
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">Mis horarios</h1>
+        <h1 className="text-2xl font-bold text-ink">{esMedico ? 'Mis horarios' : 'Horarios'}</h1>
         <p className="mt-1 text-sm text-muted">
-          Tus jornadas de atención, los servicios que ofreces en cada una y los bloqueos de tu agenda.
+          {esMedico
+            ? 'Tus jornadas de atención, los servicios que ofreces en cada una y los bloqueos de tu agenda.'
+            : 'Jornadas de atención, los servicios que se ofrecen en cada una y los bloqueos de agenda.'}
         </p>
       </div>
 

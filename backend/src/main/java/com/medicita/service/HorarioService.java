@@ -114,6 +114,18 @@ public class HorarioService {
         verificarCobertura(sinCoberturaAntes);
     }
 
+    /** Borrado definitivo: se aplica la misma regla de cobertura que al desactivar. */
+    @Transactional
+    public void eliminar(Long id) {
+        Horario horario = buscar(id);
+        Set<Long> sinCoberturaAntes = citasSinCobertura();
+
+        horarioRepository.delete(horario);
+        horarioRepository.flush();
+
+        verificarCobertura(sinCoberturaAntes);
+    }
+
     // ---------------------------------------------------------------- validaciones
 
     private void validarDatos(HorarioRequest request, Long idActual) {

@@ -16,6 +16,11 @@ export async function actualizarHorario(id, payload) {
   return data
 }
 
+// Borrado definitivo del horario (204). Si dejara citas futuras sin cobertura, el servidor responde 422
+export async function eliminarHorario(id) {
+  await api.delete(`/horarios/${id}`, { params: { definitivo: true } })
+}
+
 // Borrado lógico: el horario queda inactivo (204)
 export async function desactivarHorario(id) {
   await api.delete(`/horarios/${id}`)

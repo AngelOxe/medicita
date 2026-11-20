@@ -71,23 +71,24 @@ class RolesSecurityTest {
     }
 
     @Test
-    @WithMockUser(roles = "MEDICO")
-    void medicoNoPuedeModificarElCatalogoDeServicios() throws Exception {
+    @WithMockUser(roles = "PACIENTE")
+    void pacienteNoPuedeModificarServiciosNiAgenda() throws Exception {
         mockMvc.perform(post("/api/servicios")).andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/horarios")).andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void adminModificaServiciosPeroNoLaAgendaNiElEstadoDeLasCitas() throws Exception {
+    void adminAdministraServiciosYAgendaPeroNoMarcaElEstadoDeLasCitas() throws Exception {
         mockMvc.perform(post("/api/servicios")).andExpect(status().isOk());
-        mockMvc.perform(get("/api/horarios")).andExpect(status().isOk());
-        mockMvc.perform(post("/api/horarios")).andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/horarios")).andExpect(status().isOk());
         mockMvc.perform(patch("/api/citas/1/estado")).andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "MEDICO")
-    void medicoAdministraSuAgendaYMarcaElEstadoDeLasCitas() throws Exception {
+    void medicoAdministraServiciosYAgendaYMarcaElEstadoDeLasCitas() throws Exception {
+        mockMvc.perform(post("/api/servicios")).andExpect(status().isOk());
         mockMvc.perform(post("/api/horarios")).andExpect(status().isOk());
         mockMvc.perform(patch("/api/citas/1/estado")).andExpect(status().isOk());
     }

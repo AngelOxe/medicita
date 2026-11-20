@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useAuth } from '../context/useAuth'
 import { ClipboardList, Pencil, Plus, Search } from 'lucide-react'
 import Button from '../components/ui/Button'
 import ConfirmModal from '../components/ui/ConfirmModal'
@@ -27,7 +26,6 @@ const ESTADOS = [
 
 export default function Servicios() {
   const { show } = useToast()
-  const puedeEditar = useAuth().user.rol === 'ADMIN' // el medico solo consulta el catalogo
 
   // Los filtros viajan a la API como parámetros: ?search=...&activo=...
   const [busqueda, setBusqueda] = useState('')
@@ -109,7 +107,7 @@ export default function Servicios() {
       render: (s) => <span className="font-semibold">{formatPrecio(s.precio)}</span>,
     },
     { key: 'activo', header: 'Estado', render: (s) => <StatusBadge activo={s.activo} /> },
-    ...(!puedeEditar ? [] : [{
+    {
       key: 'acciones',
       header: 'Acciones',
       render: (s) => (
@@ -135,7 +133,7 @@ export default function Servicios() {
           </button>
         </div>
       ),
-    }]),
+    },
   ]
 
   const hayFiltros = Boolean(search || estado)
@@ -145,15 +143,11 @@ export default function Servicios() {
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <h1 className="text-2xl font-bold text-ink">Servicios</h1>
-          <p className="mt-1 text-sm text-muted">
-            {puedeEditar ? 'Catálogo de servicios del consultorio.' : 'Catálogo de servicios, solo de consulta. Lo administra el administrador.'}
-          </p>
+          <p className="mt-1 text-sm text-muted">Catálogo de servicios del consultorio.</p>
         </div>
-        {puedeEditar && (
-          <Button onClick={() => setFormulario({ servicio: null })}>
-            <Plus size={16} /> Nuevo servicio
-          </Button>
-        )}
+        <Button onClick={() => setFormulario({ servicio: null })}>
+          <Plus size={16} /> Nuevo servicio
+        </Button>
       </div>
 
       <div className="mb-4 flex flex-col gap-3 rounded-xl border border-line bg-white p-4 sm:flex-row">
@@ -186,8 +180,7 @@ export default function Servicios() {
             <p className="font-semibold text-ink">
               {hayFiltros ? 'No hay servicios con esos filtros' : 'Aún no hay servicios'}
             </p>
-            {(hayFiltros || !puedeEditar) && <p>{hayFiltros ? 'Prueba con otra búsqueda.' : 'El administrador aún no ha creado servicios.'}</p>}
-            {!hayFiltros && puedeEditar && <p>Crea el primero con "Nuevo servicio".</p>}
+            <p>{hayFiltros ? 'Prueba con otra búsqueda.' : 'Crea el primero con "Nuevo servicio".'}</p>
           </div>
         }
       />
