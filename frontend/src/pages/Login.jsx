@@ -67,7 +67,7 @@ export default function Login() {
           name="email"
           type="email"
           icon={Mail}
-          autoComplete="email"
+          autoComplete="off"
           placeholder="correo@ejemplo.com"
           value={values.email}
           onChange={handleChange}
@@ -77,7 +77,7 @@ export default function Login() {
         <PasswordInput
           label="Contraseña"
           name="password"
-          autoComplete="current-password"
+          autoComplete="new-password"
           placeholder="Tu contraseña"
           value={values.password}
           onChange={handleChange}
