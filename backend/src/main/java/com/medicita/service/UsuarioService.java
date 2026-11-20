@@ -122,6 +122,25 @@ public class UsuarioService {
         usuario.setActivo(false);
     }
 
+    /** Borrado definitivo: solo cuentas sin citas ni historial; las demas se desactivan. */
+    @Transactional
+    public void eliminar(Long id, Long actorId) {
+        var usuario = buscar(id);
+        if (usuario.getId().equals(actorId)) {
+            throw new ReglaNegocioException("No puedes eliminar tu propia cuenta");
+        }
+        if (usuario.isActivo()) {
+            validarPuedeDesactivar(usuario, actorId);
+        }
+        if (usuarioRepository.tieneActividad(id)) {
+            throw new ReglaNegocioException(
+                    "Esta cuenta tiene citas o historial registrados y no se puede eliminar. Desactivala para conservarlos");
+        }
+        usuarioRepository.borrarTokensDeRecuperacion(id);
+        usuarioRepository.delete(usuario);
+        usuarioRepository.flush();
+    }
+
     private void validarPuedeDesactivar(Usuario usuario, Long actorId) {
         if (usuario.getId().equals(actorId)) {
             throw new ReglaNegocioException("No puedes desactivar tu propia cuenta");

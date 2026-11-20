@@ -20,3 +20,8 @@ export async function actualizarServicio(id, payload) {
 export async function desactivarServicio(id) {
   await api.delete(`/servicios/${id}`)
 }
+
+// Borrado definitivo: solo si nunca tuvo citas (si no, el servidor responde 422)
+export async function eliminarServicio(id) {
+  await api.delete(`/servicios/${id}`, { params: { definitivo: true } })
+}

@@ -1,14 +1,16 @@
 import { useState } from 'react'
+import Calendario from '../components/calendario/Calendario'
 import BloqueosTab from '../components/horarios/BloqueosTab'
 import HorariosTab from '../components/horarios/HorariosTab'
 
 const TABS = [
+  { id: 'calendario', label: 'Calendario' },
   { id: 'horarios', label: 'Horarios de atención' },
   { id: 'bloqueos', label: 'Bloqueos' },
 ]
 
 export default function Horarios() {
-  const [tab, setTab] = useState('horarios')
+  const [tab, setTab] = useState('calendario')
 
   return (
     <div>
@@ -38,7 +40,9 @@ export default function Horarios() {
         ))}
       </div>
 
-      {tab === 'horarios' ? <HorariosTab /> : <BloqueosTab />}
+      {tab === 'calendario' && <Calendario />}
+      {tab === 'horarios' && <HorariosTab />}
+      {tab === 'bloqueos' && <BloqueosTab />}
     </div>
   )
 }

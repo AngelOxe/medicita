@@ -67,7 +67,15 @@ public class UsuarioController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void desactivar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado actor) {
-        usuarioService.desactivar(id, actor.getId());
+    public void eliminar(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean definitivo,
+            @AuthenticationPrincipal UsuarioAutenticado actor) {
+        // Sin parametros se desactiva (borrado logico); con ?definitivo=true se borra si no tiene historial
+        if (definitivo) {
+            usuarioService.eliminar(id, actor.getId());
+        } else {
+            usuarioService.desactivar(id, actor.getId());
+        }
     }
 }

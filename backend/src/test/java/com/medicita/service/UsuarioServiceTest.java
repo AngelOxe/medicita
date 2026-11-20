@@ -129,6 +129,29 @@ class UsuarioServiceTest {
         assertEquals("PACIENTE", respuesta.rol());
     }
 
+    @Test
+    void eliminarBorraLaCuentaSoloSiNoTieneHistorial() {
+        var paciente = usuario(7L, "PACIENTE", true);
+        when(usuarios.findById(7L)).thenReturn(Optional.of(paciente));
+        when(usuarios.tieneActividad(7L)).thenReturn(false);
+
+        servicio.eliminar(7L, 1L);
+
+        verify(usuarios).borrarTokensDeRecuperacion(7L);
+        verify(usuarios).delete(paciente);
+    }
+
+    @Test
+    void noSeEliminaUnaCuentaConCitasNiLaPropia() {
+        var paciente = usuario(7L, "PACIENTE", true);
+        when(usuarios.findById(7L)).thenReturn(Optional.of(paciente));
+        when(usuarios.tieneActividad(7L)).thenReturn(true);
+
+        assertThrows(ReglaNegocioException.class, () -> servicio.eliminar(7L, 1L));
+        assertThrows(ReglaNegocioException.class, () -> servicio.eliminar(7L, 7L));
+        verify(usuarios, never()).delete(any(Usuario.class));
+    }
+
     private UsuarioRequest peticion(String email, String rol) {
         return new UsuarioRequest("Persona Nueva", email, "+525512345678", "Clave#2026", rol);
     }

@@ -55,6 +55,10 @@ public interface CitaRepository
     /** Citas cuyo inicio cae en [desde, hasta), de cualquier estado (las de "hoy"). */
     long countByInicioGreaterThanEqualAndInicioLessThan(OffsetDateTime desde, OffsetDateTime hasta);
 
+    /** Igual que la anterior pero sin contar las canceladas (actividad real del dia). */
+    long countByInicioGreaterThanEqualAndInicioLessThanAndEstadoNot(
+            OffsetDateTime desde, OffsetDateTime hasta, String estado);
+
     long countByEstadoAndInicioAfter(String estado, OffsetDateTime instante);
 
     /** Totales por estado de toda la base: cada fila es [estado, cantidad]. */

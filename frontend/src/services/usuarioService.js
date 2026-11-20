@@ -22,6 +22,11 @@ export async function desactivarUsuario(id) {
   await api.delete(`/usuarios/${id}`)
 }
 
+// Borrado definitivo: solo cuentas sin citas ni historial (si no, el servidor responde 422)
+export async function eliminarUsuario(id) {
+  await api.delete(`/usuarios/${id}`, { params: { definitivo: true } })
+}
+
 export async function actualizarPerfil(payload) {
   const { data } = await api.put('/perfil', payload)
   return data

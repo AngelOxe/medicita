@@ -3,6 +3,7 @@ package com.medicita.service;
 import com.medicita.dto.response.ServicioResponse;
 import com.medicita.entity.Servicio;
 import com.medicita.exception.RecursoNoEncontradoException;
+import com.medicita.exception.ReglaNegocioException;
 import com.medicita.repository.ServicioRepository;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
@@ -122,6 +123,19 @@ public class ServicioService {
 
         servicio.setActivo(false);
         servicioRepository.saveAndFlush(servicio);
+    }
+
+    /** Borrado definitivo: solo si el servicio nunca tuvo citas; si las tuvo, hay que desactivarlo. */
+    @Transactional
+    public void eliminar(Long id) {
+        Servicio servicio = buscarPorId(id);
+        if (servicioRepository.tieneCitas(id)) {
+            throw new ReglaNegocioException(
+                    "Este servicio tiene citas registradas y no se puede eliminar. Desactivalo para conservar el historial");
+        }
+        servicioRepository.quitarDeHorarios(id);
+        servicioRepository.delete(servicio);
+        servicioRepository.flush();
     }
 
     private void aplicarDatos(Servicio servicio, ServicioRequest request) {

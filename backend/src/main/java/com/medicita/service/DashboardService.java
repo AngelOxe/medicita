@@ -38,11 +38,23 @@ public class DashboardService {
             porEstado.put((String) fila[0], (Long) fila[1]);
         }
 
+        var lunes = ahora.toLocalDate().with(java.time.DayOfWeek.MONDAY);
+        var semana = new java.util.ArrayList<ResumenResponse.Dia>();
+        for (int i = 0; i < 7; i++) {
+            var dia = lunes.plusDays(i);
+            var desde = dia.atStartOfDay(zona).toOffsetDateTime();
+            semana.add(new ResumenResponse.Dia(dia,
+                    citaRepository.countByInicioGreaterThanEqualAndInicioLessThanAndEstadoNot(
+                            desde, desde.plusDays(1), "cancelada")));
+        }
+
         return new ResumenResponse(
-                citaRepository.countByInicioGreaterThanEqualAndInicioLessThan(inicioDia, inicioDia.plusDays(1)),
+                citaRepository.countByInicioGreaterThanEqualAndInicioLessThanAndEstadoNot(
+                        inicioDia, inicioDia.plusDays(1), "cancelada"),
                 citaRepository.countByEstadoAndInicioAfter("confirmada", ahora),
                 usuarioRepository.countByRolNombreAndActivoTrue("PACIENTE"),
                 porEstado.get("completada"),
-                porEstado);
+                porEstado,
+                semana);
     }
 }

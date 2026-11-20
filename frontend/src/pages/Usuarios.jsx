@@ -12,7 +12,7 @@ import useDebounce from '../hooks/useDebounce'
 import usePaginatedList from '../hooks/usePaginatedList'
 import { getErrorMessage } from '../lib/apiErrors'
 import { roleLabel } from '../lib/menu'
-import { desactivarUsuario, listarUsuarios } from '../services/usuarioService'
+import { desactivarUsuario, eliminarUsuario, listarUsuarios } from '../services/usuarioService'
 
 const ROLES = [
   { value: '', label: 'Rol: todos' },
@@ -30,6 +30,7 @@ export default function Usuarios() {
 
   const [formulario, setFormulario] = useState(null) // null | { usuario: objeto | null }
   const [aDesactivar, setADesactivar] = useState(null)
+  const [aEliminar, setAEliminar] = useState(null)
   const [procesando, setProcesando] = useState(false)
 
   const guardado = (mensaje) => {
@@ -52,20 +53,33 @@ export default function Usuarios() {
     }
   }
 
+  const eliminar = async () => {
+    setProcesando(true)
+    try {
+      await eliminarUsuario(aEliminar.id)
+      show('Usuario eliminado.', 'success')
+      list.reload()
+    } catch (error) {
+      // 422 si tiene citas o historial: en ese caso solo se puede desactivar
+      show(getErrorMessage(error), 'error')
+    } finally {
+      setProcesando(false)
+      setAEliminar(null)
+    }
+  }
+
   const columns = [
     {
       key: 'nombre',
-      header: 'Usuario',
+      header: 'Nombre completo',
       render: (u) => (
         <div className="flex items-center gap-3">
           <Avatar nombre={u.nombre} avatarUrl={u.avatarUrl} />
-          <div>
-            <p className="font-semibold text-ink">{u.nombre}</p>
-            <p className="text-xs text-muted">{u.email}</p>
-          </div>
+          <span className="font-semibold text-ink">{u.nombre}</span>
         </div>
       ),
     },
+    { key: 'email', header: 'Correo electrónico', render: (u) => u.email },
     { key: 'telefono', header: 'Teléfono', render: (u) => u.telefono },
     { key: 'rol', header: 'Rol', render: (u) => roleLabel[u.rol] ?? u.rol },
     { key: 'activo', header: 'Estado', render: (u) => <StatusBadge activo={u.activo} /> },
@@ -82,6 +96,9 @@ export default function Usuarios() {
               Desactivar
             </button>
           )}
+          <button type="button" onClick={() => setAEliminar(u)} className="text-danger hover:underline">
+            Eliminar
+          </button>
         </div>
       ),
     },
@@ -145,6 +162,17 @@ export default function Usuarios() {
         loading={procesando}
         onConfirm={desactivar}
         onCancel={() => !procesando && setADesactivar(null)}
+      />
+
+      <ConfirmModal
+        open={Boolean(aEliminar)}
+        title="¿Eliminar esta cuenta?"
+        message={`${aEliminar?.nombre} se borrará de forma definitiva. Si ya tiene citas o historial no se podrá eliminar; en ese caso desactívala.`}
+        confirmText="Eliminar"
+        variant="danger"
+        loading={procesando}
+        onConfirm={eliminar}
+        onCancel={() => !procesando && setAEliminar(null)}
       />
     </div>
   )

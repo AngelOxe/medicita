@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CalendarX2, Search } from 'lucide-react'
+import Calendario from '../components/calendario/Calendario'
 import EstadoCitaBadge from '../components/citas/EstadoCitaBadge'
+import ResumenCitas from '../components/citas/ResumenCitas'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import DataTable from '../components/ui/DataTable'
 import Select from '../components/ui/Select'
@@ -11,6 +13,7 @@ import { getErrorMessage } from '../lib/apiErrors'
 import { ESTADOS_CITA } from '../lib/estadosCita'
 import { formatFechaHora, formatPrecio } from '../lib/format'
 import { cambiarEstadoCita, cancelarCita, listarCitas } from '../services/citaService'
+import { obtenerResumen } from '../services/usuarioService'
 
 const ACCIONES = {
   cancelar: {
@@ -46,6 +49,16 @@ export default function GestionCitas() {
 
   const [pendiente, setPendiente] = useState(null) // { accion, cita }
   const [procesando, setProcesando] = useState(false)
+  const [vista, setVista] = useState('lista') // 'lista' | 'calendario'
+
+  // Totales por estado de la parte de arriba; se vuelven a pedir cuando una cita cambia de estado
+  const [resumen, setResumen] = useState(null)
+  const [versionResumen, setVersionResumen] = useState(0)
+  useEffect(() => {
+    obtenerResumen()
+      .then((d) => setResumen(d.porEstado))
+      .catch(() => {})
+  }, [versionResumen])
 
   const ejecutar = async () => {
     const { accion, cita } = pendiente
@@ -54,6 +67,7 @@ export default function GestionCitas() {
       await ACCIONES[accion].ejecutar(cita)
       show(ACCIONES[accion].ok, 'success')
       list.reload()
+      setVersionResumen((n) => n + 1)
     } catch (error) {
       // Ej.: una cita que aún no termina no se puede marcar como completada (422)
       show(getErrorMessage(error), 'error')
@@ -100,11 +114,36 @@ export default function GestionCitas() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">Gestión de citas</h1>
-        <p className="mt-1 text-sm text-muted">Agenda completa del consultorio.</p>
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">Gestión de citas</h1>
+          <p className="mt-1 text-sm text-muted">Agenda completa del consultorio.</p>
+        </div>
+        <div role="group" aria-label="Forma de ver las citas" className="inline-flex self-start rounded-lg border border-line bg-white p-0.5">
+          {[['lista', 'Lista'], ['calendario', 'Calendario']].map(([id, texto]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={vista === id}
+              onClick={() => setVista(id)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${vista === id ? 'bg-brand-600 text-white' : 'text-muted hover:text-ink'}`}
+            >
+              {texto}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {resumen && (
+        <div className="mb-6">
+          <ResumenCitas porEstado={resumen} />
+        </div>
+      )}
+
+      {vista === 'calendario' && <Calendario />}
+
+      {vista === 'lista' && (
+      <>
       <div className="mb-4 grid gap-3 rounded-xl border border-line bg-white p-4 sm:grid-cols-[1fr_12rem_11rem]">
         <div className="relative">
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
@@ -137,6 +176,8 @@ export default function GestionCitas() {
           </div>
         }
       />
+      </>
+      )}
 
       <ConfirmModal
         open={Boolean(pendiente)}

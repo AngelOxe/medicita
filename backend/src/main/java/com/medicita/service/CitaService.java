@@ -157,7 +157,8 @@ public class CitaService {
     /** Agenda completa para ADMIN y MEDICO, con filtros que viajan como parametros al servidor. */
     @Transactional(readOnly = true)
     public Page<CitaResponse> listar(
-            String search, EstadoCita estado, LocalDate fecha, Pageable pageable) {
+            String search, EstadoCita estado, LocalDate fecha,
+            LocalDate desde, LocalDate hasta, Pageable pageable) {
 
         Specification<Cita> filtros = (root, query, cb) -> {
             var condiciones = new ArrayList<Predicate>();
@@ -177,6 +178,14 @@ public class CitaService {
                 condiciones.add(cb.lessThan(
                         root.<OffsetDateTime>get("inicio"),
                         fecha.plusDays(1).atStartOfDay(zona).toOffsetDateTime()));
+            }
+            if (desde != null) {
+                condiciones.add(cb.greaterThanOrEqualTo(
+                        root.<OffsetDateTime>get("inicio"), desde.atStartOfDay(zona).toOffsetDateTime()));
+            }
+            if (hasta != null) {
+                condiciones.add(cb.lessThan(
+                        root.<OffsetDateTime>get("inicio"), hasta.plusDays(1).atStartOfDay(zona).toOffsetDateTime()));
             }
             return cb.and(condiciones.toArray(new Predicate[0]));
         };

@@ -1,17 +1,14 @@
 import { useEffect, useState } from 'react'
 import { CalendarCheck, CalendarClock, CheckCircle2, Users } from 'lucide-react'
+import EstadoCitaBadge from '../components/citas/EstadoCitaBadge'
+import ResumenCitas from '../components/citas/ResumenCitas'
 import Button from '../components/ui/Button'
 import Spinner from '../components/ui/Spinner'
 import { useAuth } from '../context/useAuth'
 import { getErrorMessage } from '../lib/apiErrors'
+import { formatoFecha, hoyISO, partesISO, horaDeMinutos } from '../lib/fechas'
+import { listarCitas } from '../services/citaService'
 import { obtenerResumen } from '../services/usuarioService'
-
-const ESTADOS = [
-  { clave: 'confirmada', texto: 'Confirmadas', barra: 'bg-brand-600' },
-  { clave: 'completada', texto: 'Completadas', barra: 'bg-ok' },
-  { clave: 'cancelada', texto: 'Canceladas', barra: 'bg-danger' },
-  { clave: 'no_asistio', texto: 'No asistió', barra: 'bg-warn' },
-]
 
 function Tarjeta({ icono: Icono, titulo, valor }) {
   return (
@@ -27,21 +24,22 @@ function Tarjeta({ icono: Icono, titulo, valor }) {
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const [resumen, setResumen] = useState(null)
+  const [datos, setDatos] = useState(null) // { resumen, hoy }
   const [error, setError] = useState('')
   const [intento, setIntento] = useState(0)
 
   useEffect(() => {
     let activo = true
-    obtenerResumen()
-      .then((d) => activo && (setResumen(d), setError('')))
+    Promise.all([obtenerResumen(), listarCitas({ fecha: hoyISO(), size: 50, page: 0, orden: 'asc' })])
+      .then(([resumen, hoy]) => activo && (setDatos({ resumen, hoy: hoy.content.filter((c) => c.estado !== 'cancelada') }), setError('')))
       .catch((e) => activo && setError(getErrorMessage(e)))
     return () => {
       activo = false
     }
   }, [intento])
 
-  const total = resumen ? Object.values(resumen.porEstado).reduce((a, b) => a + b, 0) : 0
+  const resumen = datos?.resumen
+  const hoy = hoyISO()
 
   return (
     <div>
@@ -57,13 +55,13 @@ export default function Dashboard() {
         </div>
       )}
 
-      {!resumen && !error && (
+      {!datos && !error && (
         <div className="mt-10 flex justify-center text-brand-600">
           <Spinner />
         </div>
       )}
 
-      {resumen && (
+      {datos && (
         <>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Tarjeta icono={CalendarCheck} titulo="Citas de hoy" valor={resumen.citasHoy} />
@@ -72,25 +70,47 @@ export default function Dashboard() {
             <Tarjeta icono={CheckCircle2} titulo="Completadas" valor={resumen.completadas} />
           </div>
 
-          <section className="mt-6 rounded-xl border border-line bg-white p-5">
-            <h2 className="text-sm font-semibold text-ink">Citas por estado</h2>
-            <p className="text-xs text-muted">{total} citas en total</p>
-            <ul className="mt-4 space-y-3">
-              {ESTADOS.map((e) => {
-                const n = resumen.porEstado[e.clave] ?? 0
-                return (
-                  <li key={e.clave}>
-                    <div className="mb-1 flex justify-between text-sm">
-                      <span className="text-ink">{e.texto}</span>
-                      <span className="font-semibold text-ink">{n}</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-neutral-bg">
-                      <div className={`h-2 rounded-full ${e.barra}`} style={{ width: total ? `${(n / total) * 100}%` : '0%' }} />
-                    </div>
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <section className="rounded-xl border border-line bg-white p-5">
+              <h2 className="text-sm font-semibold text-ink">Agenda de hoy</h2>
+              <p className="text-xs text-muted first-letter:uppercase">{formatoFecha(hoy, { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+              {datos.hoy.length === 0 ? (
+                <p className="mt-6 text-center text-sm text-muted">No hay citas para hoy.</p>
+              ) : (
+                <ul className="mt-4 divide-y divide-line">
+                  {datos.hoy.map((c) => (
+                    <li key={c.id} className="flex items-center gap-3 py-3">
+                      <span className="w-14 text-sm font-semibold text-brand-600">{horaDeMinutos(partesISO(c.inicio).min)}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-ink">{c.paciente.nombre}</p>
+                        <p className="truncate text-xs text-muted">{c.servicio.nombre}</p>
+                      </div>
+                      <EstadoCitaBadge estado={c.estado} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section className="rounded-xl border border-line bg-white p-5">
+              <h2 className="text-sm font-semibold text-ink">Actividad de la semana</h2>
+              <p className="text-xs text-muted">Citas por día, sin contar las canceladas</p>
+              <ul className="mt-4 divide-y divide-line">
+                {resumen.semana.map((d) => (
+                  <li key={d.fecha} className={`flex items-center justify-between py-2.5 text-sm ${d.fecha === hoy ? 'font-semibold text-brand-600' : 'text-ink'}`}>
+                    <span className="inline-block first-letter:uppercase">{formatoFecha(d.fecha, { weekday: 'long', day: 'numeric', month: 'short' })}</span>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${d.total ? 'bg-brand-50 text-brand-700' : 'bg-neutral-bg text-muted'}`}>
+                      {d.total} {d.total === 1 ? 'cita' : 'citas'}
+                    </span>
                   </li>
-                )
-              })}
-            </ul>
+                ))}
+              </ul>
+            </section>
+          </div>
+
+          <section className="mt-6">
+            <h2 className="mb-3 text-sm font-semibold text-ink">Citas por estado</h2>
+            <ResumenCitas porEstado={resumen.porEstado} />
           </section>
         </>
       )}

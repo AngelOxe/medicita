@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CalendarCheck, Clock3 } from 'lucide-react'
+import { CalendarCheck, Clock3, Info, Stethoscope } from 'lucide-react'
 import Button from '../components/ui/Button'
 import Spinner from '../components/ui/Spinner'
 import { useToast } from '../components/ui/useToast'
@@ -14,6 +14,15 @@ const diaFmt = new Intl.DateTimeFormat('es-MX', { timeZone: ZONA, weekday: 'long
 
 // Fecha de hoy en la zona del consultorio, formato AAAA-MM-DD
 const hoyISO = () => new Intl.DateTimeFormat('sv-SE', { timeZone: ZONA }).format(new Date())
+
+const PASO_MS = 30 * 60 * 1000 // los horarios se ofrecen cada 30 minutos
+
+const AVISOS = [
+  'Llega 10 minutos antes de tu hora para que la consulta empiece puntual.',
+  'Trae una identificación y, si los tienes, estudios o recetas anteriores.',
+  'Puedes cancelar sin costo hasta 2 horas antes desde "Mis citas".',
+  'Si no puedes asistir, cancela para que otro paciente use ese horario.',
+]
 
 export default function Reservar() {
   const navigate = useNavigate()
@@ -85,6 +94,17 @@ export default function Reservar() {
     }
   }
 
+  // Todas las horas entre el primer y el último horario libre; las que no están libres se marcan como ocupadas
+  const marcas = useMemo(() => {
+    if (!slots?.length) return []
+    const libres = new Map(slots.map((s) => [new Date(s.inicio).getTime(), s]))
+    const desde = Math.min(...libres.keys())
+    const hasta = Math.max(...libres.keys())
+    const lista = []
+    for (let t = desde; t <= hasta; t += PASO_MS) lista.push({ t, slot: libres.get(t) ?? null })
+    return lista
+  }, [slots])
+
   const fechaLarga = useMemo(() => {
     if (!fecha) return ''
     return diaFmt.format(new Date(`${fecha}T12:00:00-06:00`))
@@ -115,8 +135,11 @@ export default function Reservar() {
                   : 'border-line bg-white hover:border-brand-600'
               }`}
             >
+              <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-brand-600">
+                <Stethoscope size={18} />
+              </span>
               <p className="font-semibold text-ink">{s.nombre}</p>
-              {s.descripcion && <p className="mt-1 line-clamp-2 text-xs text-muted">{s.descripcion}</p>}
+              {s.descripcion && <p className="mt-1 text-xs leading-relaxed text-muted">{s.descripcion}</p>}
               <p className="mt-3 flex items-center justify-between text-sm">
                 <span className="inline-flex items-center gap-1 text-muted">
                   <Clock3 size={14} /> {s.duracionMin} min
@@ -127,6 +150,23 @@ export default function Reservar() {
           ))}
         </div>
       </section>
+
+      {servicio && (
+        <section className="mt-6 rounded-xl border border-brand-200 bg-brand-50 p-5">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
+            <Info size={16} className="text-brand-600" /> Antes de tu cita: {servicio.nombre}
+          </h2>
+          <p className="mt-2 text-sm text-ink">
+            Duración aproximada de <strong>{servicio.duracionMin} minutos</strong> y costo de{' '}
+            <strong>{formatPrecio(servicio.precio)}</strong>, que se paga en el consultorio.
+          </p>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
+            {AVISOS.map((a) => (
+              <li key={a}>{a}</li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {servicio && (
         <section className="mt-8">
@@ -155,24 +195,47 @@ export default function Reservar() {
                   No hay horarios libres ese día para este servicio. Prueba con otra fecha.
                 </p>
               )}
-              {slots?.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
-                  {slots.map((s) => (
-                    <button
-                      key={s.inicio}
-                      type="button"
-                      onClick={() => setSlot(s)}
-                      aria-pressed={slot?.inicio === s.inicio}
-                      className={`rounded-lg border px-2 py-2 text-sm font-medium transition ${
-                        slot?.inicio === s.inicio
-                          ? 'border-brand-600 bg-brand-600 text-white'
-                          : 'border-line bg-white text-ink hover:border-brand-600'
-                      }`}
-                    >
-                      {horaFmt.format(new Date(s.inicio))}
-                    </button>
-                  ))}
-                </div>
+              {marcas.length > 0 && (
+                <>
+                  <ul className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+                    <li className="inline-flex items-center gap-1.5">
+                      <span className="h-3 w-3 rounded border border-green-300 bg-green-100" /> Disponible
+                    </li>
+                    <li className="inline-flex items-center gap-1.5">
+                      <span className="h-3 w-3 rounded bg-neutral-bg" /> No disponible
+                    </li>
+                    <li className="inline-flex items-center gap-1.5">
+                      <span className="h-3 w-3 rounded bg-brand-600" /> Tu elección
+                    </li>
+                  </ul>
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+                    {marcas.map(({ t, slot: libre }) =>
+                      libre ? (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setSlot(libre)}
+                          aria-pressed={slot?.inicio === libre.inicio}
+                          className={`rounded-lg border px-2 py-2 text-sm font-medium transition ${
+                            slot?.inicio === libre.inicio
+                              ? 'border-brand-600 bg-brand-600 text-white'
+                              : 'border-green-300 bg-green-100 text-ink hover:border-brand-600'
+                          }`}
+                        >
+                          {horaFmt.format(new Date(t))}
+                        </button>
+                      ) : (
+                        <span
+                          key={t}
+                          aria-label={`${horaFmt.format(new Date(t))}, no disponible`}
+                          className="rounded-lg bg-neutral-bg px-2 py-2 text-center text-sm text-muted line-through"
+                        >
+                          {horaFmt.format(new Date(t))}
+                        </span>
+                      ),
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>

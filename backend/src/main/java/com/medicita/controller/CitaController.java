@@ -75,11 +75,20 @@ public class CitaController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) EstadoCita estado,
             @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(defaultValue = "desc") String orden) {
 
+        // desde/hasta (ambos inclusive) alimentan las vistas de calendario; "asc" ordena la agenda del dia
+        Sort sort = "asc".equalsIgnoreCase(orden)
+                ? Sort.by("inicio").ascending()
+                : Sort.by("inicio").descending();
         var pagina = citaService.listar(
-                search, estado, fecha,
-                Paginacion.de(page, size, Sort.by("inicio").descending()));
+                search, estado, fecha, desde, hasta,
+                Paginacion.de(page, size, sort));
         return PaginaResponse.desde(pagina);
     }
 
