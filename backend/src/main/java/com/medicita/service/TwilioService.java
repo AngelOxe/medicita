@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
 
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 /**
@@ -16,6 +17,11 @@ import java.util.regex.Pattern;
  * Esta apagado por defecto (app.twilio.enabled=false): en desarrollo solo escribe en el log.
  * Las claves viven en application.properties o en variables de entorno, nunca en el repositorio.
  * Un fallo al enviar se registra y no rompe la operacion que lo origino.
+ *
+ * Las cuentas de prueba de Twilio no aceptan texto libre:
+ * - SMS: el cuerpo debe ser el nombre de una plantilla predefinida (app.twilio.sms-template).
+ * - WhatsApp: se envia un ContentSid con dos variables, fecha y hora (app.twilio.whatsapp-content-sid).
+ * Si esas dos propiedades se dejan vacias (cuenta de pago) se envia el texto que arma la aplicacion.
  */
 @Service
 public class TwilioService {
@@ -26,7 +32,9 @@ public class TwilioService {
 
     private final boolean activo;
     private final String smsDesde;
+    private final String smsPlantilla;
     private final String whatsappDesde;
+    private final String whatsappContentSid;
     private final RestClient cliente;
 
     @Autowired
@@ -35,30 +43,53 @@ public class TwilioService {
             @Value("${app.twilio.account-sid:}") String accountSid,
             @Value("${app.twilio.auth-token:}") String authToken,
             @Value("${app.twilio.sms-from:}") String smsDesde,
-            @Value("${app.twilio.whatsapp-from:}") String whatsappDesde) {
-        this(RestClient.builder(), activo, accountSid, authToken, smsDesde, whatsappDesde);
+            @Value("${app.twilio.sms-template:}") String smsPlantilla,
+            @Value("${app.twilio.whatsapp-from:}") String whatsappDesde,
+            @Value("${app.twilio.whatsapp-content-sid:}") String whatsappContentSid) {
+        this(RestClient.builder(), activo, accountSid, authToken, smsDesde, smsPlantilla,
+                whatsappDesde, whatsappContentSid);
     }
 
     TwilioService(RestClient.Builder constructor, boolean activo, String accountSid, String authToken,
-                  String smsDesde, String whatsappDesde) {
+                  String smsDesde, String smsPlantilla, String whatsappDesde, String whatsappContentSid) {
         this.activo = activo;
         this.smsDesde = smsDesde;
+        this.smsPlantilla = smsPlantilla;
         this.whatsappDesde = whatsappDesde;
+        this.whatsappContentSid = whatsappContentSid;
         this.cliente = constructor
                 .baseUrl("https://api.twilio.com/2010-04-01/Accounts/" + accountSid)
                 .defaultHeaders(cabeceras -> cabeceras.setBasicAuth(accountSid, authToken))
                 .build();
     }
 
+    /** Con una plantilla configurada (cuenta de prueba) no se puede enviar un texto propio. */
+    public boolean smsAceptaTextoLibre() {
+        return smsPlantilla.isBlank();
+    }
+
     public void enviarSms(String telefono, String texto) {
-        enviar(telefono, smsDesde, telefono, texto, "SMS");
+        enviar(telefono, "SMS", campos -> {
+            campos.add("To", telefono);
+            campos.add("From", smsDesde);
+            campos.add("Body", smsPlantilla.isBlank() ? texto : smsPlantilla);
+        });
     }
 
-    public void enviarWhatsApp(String telefono, String texto) {
-        enviar("whatsapp:" + telefono, whatsappDesde, telefono, texto, "WhatsApp");
+    public void enviarWhatsApp(String telefono, String texto, String fecha, String hora) {
+        enviar(telefono, "WhatsApp", campos -> {
+            campos.add("To", "whatsapp:" + telefono);
+            campos.add("From", whatsappDesde);
+            if (whatsappContentSid.isBlank()) {
+                campos.add("Body", texto);
+            } else {
+                campos.add("ContentSid", whatsappContentSid);
+                campos.add("ContentVariables", "{\"1\":\"" + escapar(fecha) + "\",\"2\":\"" + escapar(hora) + "\"}");
+            }
+        });
     }
 
-    private void enviar(String para, String desde, String telefono, String texto, String canal) {
+    private void enviar(String telefono, String canal, Consumer<LinkedMultiValueMap<String, String>> armar) {
         if (telefono == null || !TELEFONO.matcher(telefono).matches()) {
             log.info("[{}] No se envia: el paciente no tiene un telefono en formato internacional", canal);
             return;
@@ -69,9 +100,7 @@ public class TwilioService {
         }
         try {
             var campos = new LinkedMultiValueMap<String, String>();
-            campos.add("To", para);
-            campos.add("From", desde);
-            campos.add("Body", texto);
+            armar.accept(campos);
             cliente.post()
                     .uri("/Messages.json")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -83,5 +112,9 @@ public class TwilioService {
             // La cita ya se guardo o se cancelo: solo se deja constancia del fallo
             log.warn("[{}] No se pudo enviar a {}: {}", canal, telefono, error.getMessage());
         }
+    }
+
+    private static String escapar(String valor) {
+        return valor.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

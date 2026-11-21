@@ -71,12 +71,23 @@ class NotificacionServiceTest {
     }
 
     @Test
-    void confirmarEnviaWhatsAppYCancelarEnviaSms() {
+    void confirmarEnviaWhatsAppConFechaYHoraYSms() {
         servicio(true).notificarCitaConfirmada(cita);
-        servicio(true).notificarCitaCancelada(cita);
 
-        verify(twilio).enviarWhatsApp(eq("+525512345678"), contains("confirmada"));
+        verify(twilio).enviarWhatsApp(eq("+525512345678"), contains("confirmada"), eq("23/11/2026"), eq("10:00"));
+        verify(twilio).enviarSms(eq("+525512345678"), contains("confirmada"));
+    }
+
+    @Test
+    void cancelarEnviaSmsSoloSiLaCuentaAceptaTextoLibre() {
+        when(twilio.smsAceptaTextoLibre()).thenReturn(true);
+        servicio(true).notificarCitaCancelada(cita);
         verify(twilio).enviarSms(eq("+525512345678"), contains("cancelada"));
+
+        org.mockito.Mockito.reset(twilio);
+        when(twilio.smsAceptaTextoLibre()).thenReturn(false);
+        servicio(true).notificarCitaCancelada(cita);
+        verify(twilio, never()).enviarSms(any(), any());
     }
 
     @Test
