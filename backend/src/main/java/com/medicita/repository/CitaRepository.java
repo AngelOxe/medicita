@@ -51,4 +51,17 @@ public interface CitaRepository
           AND c.inicio > :ahora
         """)
     List<Cita> buscarConfirmadasFuturas(@Param("ahora") OffsetDateTime ahora);
+
+    /** Citas cuyo inicio cae en [desde, hasta), de cualquier estado (las de "hoy"). */
+    long countByInicioGreaterThanEqualAndInicioLessThan(OffsetDateTime desde, OffsetDateTime hasta);
+
+    /** Igual que la anterior pero sin contar las canceladas (actividad real del dia). */
+    long countByInicioGreaterThanEqualAndInicioLessThanAndEstadoNot(
+            OffsetDateTime desde, OffsetDateTime hasta, String estado);
+
+    long countByEstadoAndInicioAfter(String estado, OffsetDateTime instante);
+
+    /** Totales por estado de toda la base: cada fila es [estado, cantidad]. */
+    @Query("SELECT c.estado, COUNT(c) FROM Cita c GROUP BY c.estado")
+    List<Object[]> contarPorEstado();
 }

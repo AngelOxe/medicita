@@ -3,6 +3,7 @@ package com.medicita.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -213,6 +214,24 @@ public ResponseEntity<ApiError> manejarCorreoDuplicado(
                 "Ocurrio un error interno",
                 request,
                 List.of()
+        );
+    }
+
+    /**
+     * Dos reservas casi simultaneas pueden provocar un deadlock en PostgreSQL (SQLState 40P01)
+     * en lugar del error de restriccion 23P01: la base aborta a una de las dos. Para el usuario
+     * es lo mismo que un empalme: otra persona se quedo con el horario.
+     */
+    @ExceptionHandler(CannotAcquireLockException.class)
+    public ResponseEntity<ApiError> manejarBloqueoConcurrente(
+            CannotAcquireLockException exception,
+            HttpServletRequest request) {
+
+        return responder(
+                HttpStatus.valueOf(422),
+                "El horario seleccionado ya no esta disponible",
+                request,
+                List.of(new ApiError.FieldError("inicio", "Horario ocupado"))
         );
     }
 

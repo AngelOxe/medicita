@@ -75,11 +75,18 @@ public class ServicioController {
         return servicioService.actualizar(id, request);
     }
 
-    /** Borrado logico: desactiva el servicio; las citas historicas se conservan. */
+    /**
+     * Sin parametros: borrado logico (desactiva; las citas historicas se conservan).
+     * Con ?definitivo=true: borra el servicio, solo si nunca tuvo citas.
+     */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void desactivar(@PathVariable Long id) {
-        servicioService.desactivar(id);
+    public void eliminar(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean definitivo) {
+        if (definitivo) {
+            servicioService.eliminar(id);
+        } else {
+            servicioService.desactivar(id);
+        }
     }
 
     private boolean esPaciente(UsuarioAutenticado usuario) {

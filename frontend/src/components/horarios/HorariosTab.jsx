@@ -13,6 +13,7 @@ import { DIAS_SEMANA, diasOptions, formatHora } from '../../lib/format'
 import {
   actualizarHorario,
   desactivarHorario,
+  eliminarHorario,
   listarHorarios,
 } from '../../services/horarioService'
 
@@ -31,6 +32,7 @@ export default function HorariosTab() {
 
   const [formulario, setFormulario] = useState(null)
   const [aDesactivar, setADesactivar] = useState(null)
+  const [aEliminar, setAEliminar] = useState(null)
   const [procesando, setProcesando] = useState(false)
 
   const guardado = (mensaje) => {
@@ -52,6 +54,21 @@ export default function HorariosTab() {
       setADesactivar(null)
     } finally {
       setProcesando(false)
+    }
+  }
+
+  const eliminar = async () => {
+    setProcesando(true)
+    try {
+      await eliminarHorario(aEliminar.id)
+      show('Horario eliminado.', 'success')
+      list.reload()
+    } catch (error) {
+      // 422 si dejaría citas futuras sin horario que las cubra
+      show(getErrorMessage(error), 'error')
+    } finally {
+      setProcesando(false)
+      setAEliminar(null)
     }
   }
 
@@ -122,6 +139,9 @@ export default function HorariosTab() {
               Activar
             </button>
           )}
+          <button type="button" onClick={() => setAEliminar(h)} className="text-danger hover:underline">
+            Eliminar
+          </button>
         </div>
       ),
     },
@@ -171,6 +191,21 @@ export default function HorariosTab() {
         loading={procesando}
         onConfirm={desactivar}
         onCancel={() => !procesando && setADesactivar(null)}
+      />
+
+      <ConfirmModal
+        open={Boolean(aEliminar)}
+        title="¿Eliminar este horario?"
+        message={
+          aEliminar
+            ? `${DIAS_SEMANA[aEliminar.diaSemana]} de ${formatHora(aEliminar.horaInicio)} a ${formatHora(aEliminar.horaFin)} se borrará de forma definitiva. Si hay citas futuras que dependan de él, no se podrá eliminar.`
+            : ''
+        }
+        confirmText="Eliminar"
+        variant="danger"
+        loading={procesando}
+        onConfirm={eliminar}
+        onCancel={() => !procesando && setAEliminar(null)}
       />
     </div>
   )
