@@ -62,7 +62,7 @@ class TwilioServiceTest {
                         Map.of("To", "whatsapp:+525512345678", "From", "whatsapp:+14155238886")))
                 .andRespond(withSuccess());
 
-        twilio(true).enviarWhatsApp("+525512345678", "Hola", "23/11/2026", "10:00");
+        twilio(true).enviarWhatsApp("+525512345678", "Hola");
 
         servidor.verify();
     }
@@ -79,14 +79,12 @@ class TwilioServiceTest {
     }
 
     @Test
-    void conCuentaDePruebaElWhatsAppEnviaContentSidYVariablesDeFechaYHora() {
+    void conCuentaDePruebaElWhatsAppEnviaSoloElContentSid() {
         servidor.expect(requestTo(URL))
-                .andExpect(content().formDataContains(Map.of(
-                        "ContentSid", "HX123",
-                        "ContentVariables", "{\"1\":\"23/11/2026\",\"2\":\"10:00\"}")))
+                .andExpect(content().formDataContains(Map.of("ContentSid", "HX123")))
                 .andRespond(withSuccess());
 
-        twilioDePrueba().enviarWhatsApp("+525512345678", "texto", "23/11/2026", "10:00");
+        twilioDePrueba().enviarWhatsApp("+525512345678", "texto");
 
         servidor.verify();
     }
@@ -95,7 +93,7 @@ class TwilioServiceTest {
     void conTwilioApagadoOConTelefonoInvalidoNoSeLlamaALaApi() {
         twilio(false).enviarSms("+525512345678", "Hola");
         twilio(true).enviarSms("0000000000", "Hola");
-        twilio(true).enviarWhatsApp(null, "Hola", "x", "y");
+        twilio(true).enviarWhatsApp(null, "Hola");
 
         servidor.verify(); // no habia ninguna peticion esperada
     }

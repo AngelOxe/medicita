@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  *
  * Las cuentas de prueba de Twilio no aceptan texto libre:
  * - SMS: el cuerpo debe ser el nombre de una plantilla predefinida (app.twilio.sms-template).
- * - WhatsApp: se envia un ContentSid con dos variables, fecha y hora (app.twilio.whatsapp-content-sid).
+ * - WhatsApp: solo se puede enviar el ContentSid de una plantilla de Twilio, sin variables (app.twilio.whatsapp-content-sid).
  * Si esas dos propiedades se dejan vacias (cuenta de pago) se envia el texto que arma la aplicacion.
  */
 @Service
@@ -76,7 +76,7 @@ public class TwilioService {
         });
     }
 
-    public void enviarWhatsApp(String telefono, String texto, String fecha, String hora) {
+    public void enviarWhatsApp(String telefono, String texto) {
         enviar(telefono, "WhatsApp", campos -> {
             campos.add("To", "whatsapp:" + telefono);
             campos.add("From", whatsappDesde);
@@ -84,7 +84,6 @@ public class TwilioService {
                 campos.add("Body", texto);
             } else {
                 campos.add("ContentSid", whatsappContentSid);
-                campos.add("ContentVariables", "{\"1\":\"" + escapar(fecha) + "\",\"2\":\"" + escapar(hora) + "\"}");
             }
         });
     }
@@ -112,9 +111,5 @@ public class TwilioService {
             // La cita ya se guardo o se cancelo: solo se deja constancia del fallo
             log.warn("[{}] No se pudo enviar a {}: {}", canal, telefono, error.getMessage());
         }
-    }
-
-    private static String escapar(String valor) {
-        return valor.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

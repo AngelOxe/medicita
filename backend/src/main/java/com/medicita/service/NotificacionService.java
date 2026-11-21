@@ -12,7 +12,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
@@ -27,8 +26,6 @@ import java.util.Locale;
 public class NotificacionService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificacionService.class);
-    private static final DateTimeFormatter DIA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final DateTimeFormatter HORA = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter FECHA_HORA =
             DateTimeFormatter.ofPattern("EEEE d 'de' MMMM 'de' yyyy, HH:mm 'h'", Locale.forLanguageTag("es-MX"));
 
@@ -64,12 +61,9 @@ public class NotificacionService {
                 + frontendUrl + "/mis-citas\n\n"
                 + "MediCita";
         enviarCorreo(paciente.getEmail(), "Tu cita en MediCita está confirmada", cuerpo);
-        // WhatsApp con la plantilla de recordatorio de cita (fecha y hora) y SMS de confirmacion
-        ZonedDateTime inicio = cita.getInicio().atZoneSameInstant(zona);
         String texto = "MediCita: tu cita de " + cita.getServicio().getNombre()
                 + " quedó confirmada para el " + fecha(cita) + ".";
-        twilio.enviarWhatsApp(paciente.getTelefono(), texto,
-                DIA.format(inicio), HORA.format(inicio));
+        twilio.enviarWhatsApp(paciente.getTelefono(), texto);
         twilio.enviarSms(paciente.getTelefono(), texto);
     }
 

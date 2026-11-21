@@ -38,4 +38,4 @@ app.twilio.sms-from=+10000000000
 # Cuenta de prueba: plantilla de SMS y ContentSid de WhatsApp (vacios si la cuenta acepta texto libre)
 app.twilio.sms-template=sms_appointment_reminders
 app.twilio.whatsapp-from=whatsapp:+10000000000
-app.twilio.whatsapp-content-sid=HXb5b62575e6e4ff6129ad7c8efe1f983e
+app.twilio.whatsapp-content-sid=CAMBIAR

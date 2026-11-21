@@ -71,10 +71,10 @@ class NotificacionServiceTest {
     }
 
     @Test
-    void confirmarEnviaWhatsAppConFechaYHoraYSms() {
+    void confirmarEnviaWhatsAppYSms() {
         servicio(true).notificarCitaConfirmada(cita);
 
-        verify(twilio).enviarWhatsApp(eq("+525512345678"), contains("confirmada"), eq("23/11/2026"), eq("10:00"));
+        verify(twilio).enviarWhatsApp(eq("+525512345678"), contains("confirmada"));
         verify(twilio).enviarSms(eq("+525512345678"), contains("confirmada"));
     }
 
