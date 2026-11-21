@@ -20,3 +20,12 @@ app.timezone=America/Mexico_City
 
 # URL del frontend (se usa en el enlace de recuperar contrasena)
 app.frontend-url=http://localhost:5173
+
+# Correo: Postfix local del servidor. En desarrollo se deja app.mail.enabled=false (solo escribe en el log)
+app.mail.enabled=false
+app.mail.from=no-reply@tu-dominio.com
+spring.mail.host=localhost
+spring.mail.port=25
+spring.mail.properties.mail.smtp.connectiontimeout=3000
+spring.mail.properties.mail.smtp.timeout=5000
+spring.mail.properties.mail.smtp.writetimeout=5000
