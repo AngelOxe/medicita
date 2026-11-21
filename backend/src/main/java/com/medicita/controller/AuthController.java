@@ -1,12 +1,15 @@
 package com.medicita.controller;
 
+import com.medicita.dto.request.ForgotPasswordRequest;
 import com.medicita.dto.request.LoginRequest;
 import com.medicita.dto.request.RegistroRequest;
+import com.medicita.dto.request.ResetPasswordRequest;
 import com.medicita.dto.response.AuthResponse;
 import com.medicita.dto.response.UsuarioResponse;
 import com.medicita.security.UsuarioAutenticado;
 import com.medicita.service.AuthService;
 import com.medicita.service.LogoutService;
+import com.medicita.service.RecuperacionPasswordService;
 import com.medicita.service.RegistroService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -26,14 +29,17 @@ public class AuthController {
     private final AuthService authService;
     private final LogoutService logoutService;
     private final RegistroService registroService;
+    private final RecuperacionPasswordService recuperacionPasswordService;
 
     public AuthController(
             AuthService authService,
             LogoutService logoutService,
-            RegistroService registroService) {
+            RegistroService registroService,
+            RecuperacionPasswordService recuperacionPasswordService) {
         this.authService = authService;
         this.logoutService = logoutService;
         this.registroService = registroService;
+        this.recuperacionPasswordService = recuperacionPasswordService;
     }
 
     @PostMapping("/register")
@@ -59,6 +65,23 @@ public class AuthController {
         logoutService.cerrarSesion(token, usuario.getId());
 
         return new MensajeResponse("Sesion cerrada correctamente");
+    }
+
+    /** Responde lo mismo exista o no el correo: asi nadie averigua que correos estan registrados. */
+    @PostMapping("/forgot-password")
+    public MensajeResponse olvidePassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+
+        recuperacionPasswordService.solicitar(request.email());
+        return new MensajeResponse("Si el correo existe, recibiras un enlace");
+    }
+
+    @PostMapping("/reset-password")
+    public MensajeResponse restablecerPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+
+        recuperacionPasswordService.restablecer(request.token(), request.password());
+        return new MensajeResponse("Contrasena actualizada. Ya puedes iniciar sesion");
     }
 
     public record MensajeResponse(String message) {
