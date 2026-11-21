@@ -29,3 +29,10 @@ spring.mail.port=25
 spring.mail.properties.mail.smtp.connectiontimeout=3000
 spring.mail.properties.mail.smtp.timeout=5000
 spring.mail.properties.mail.smtp.writetimeout=5000
+
+# SMS y WhatsApp con Twilio. En desarrollo se deja app.twilio.enabled=false (solo escribe en el log)
+app.twilio.enabled=false
+app.twilio.account-sid=CAMBIAR
+app.twilio.auth-token=CAMBIAR
+app.twilio.sms-from=+10000000000
+app.twilio.whatsapp-from=whatsapp:+10000000000

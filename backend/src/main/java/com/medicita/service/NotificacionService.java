@@ -20,7 +20,7 @@ import java.util.Locale;
  * El correo sale por JavaMailSender hacia el Postfix local del servidor (que lo firma con DKIM).
  * Si app.mail.enabled=false (valor por defecto, util en desarrollo) los mensajes solo se escriben en el log.
  * Un fallo al enviar nunca rompe la operacion principal: se registra y la reserva o la cancelacion siguen.
- * El SMS y el WhatsApp se agregan en este mismo servicio.
+ * El SMS y el WhatsApp salen por TwilioService: confirmar una cita envia WhatsApp y cancelarla envia SMS.
  */
 @Service
 public class NotificacionService {
@@ -34,18 +34,21 @@ public class NotificacionService {
     private final String remitente;
     private final ObjectProvider<JavaMailSender> correo;
     private final ZoneId zona;
+    private final TwilioService twilio;
 
     public NotificacionService(
             @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl,
             @Value("${app.mail.enabled:false}") boolean correoActivo,
             @Value("${app.mail.from:no-reply@localhost}") String remitente,
             ObjectProvider<JavaMailSender> correo,
-            ZoneId zona) {
+            ZoneId zona,
+            TwilioService twilio) {
         this.frontendUrl = frontendUrl;
         this.correoActivo = correoActivo;
         this.remitente = remitente;
         this.correo = correo;
         this.zona = zona;
+        this.twilio = twilio;
     }
 
     /** Reserva: correo de confirmacion (el WhatsApp se agrega con Twilio). */
@@ -58,6 +61,8 @@ public class NotificacionService {
                 + frontendUrl + "/mis-citas\n\n"
                 + "MediCita";
         enviarCorreo(paciente.getEmail(), "Tu cita en MediCita está confirmada", cuerpo);
+        twilio.enviarWhatsApp(paciente.getTelefono(), "MediCita: tu cita de " + cita.getServicio().getNombre()
+                + " quedó confirmada para el " + fecha(cita) + ".");
     }
 
     /** Cancelacion: correo (el SMS se agrega con Twilio). */
@@ -70,6 +75,8 @@ public class NotificacionService {
                 + frontendUrl + "/reservar\n\n"
                 + "MediCita";
         enviarCorreo(paciente.getEmail(), "Tu cita en MediCita fue cancelada", cuerpo);
+        twilio.enviarSms(paciente.getTelefono(), "MediCita: tu cita de " + cita.getServicio().getNombre()
+                + " del " + fecha(cita) + " fue cancelada.");
     }
 
     public void enviarRecuperacionPassword(Usuario usuario, String token) {
@@ -86,6 +93,10 @@ public class NotificacionService {
             return;
         }
         enviarCorreo(usuario.getEmail(), "Restablece tu contraseña de MediCita", cuerpo);
+    }
+
+    private String fecha(Cita cita) {
+        return FECHA_HORA.format(cita.getInicio().atZoneSameInstant(zona));
     }
 
     private String detalle(Cita cita) {

@@ -18,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -33,10 +35,12 @@ class NotificacionServiceTest {
     private ObjectProvider<JavaMailSender> proveedor;
     private Cita cita;
     private Usuario paciente;
+    private TwilioService twilio;
 
     @SuppressWarnings("unchecked")
     @BeforeEach
     void preparar() {
+        twilio = mock(TwilioService.class);
         sender = mock(JavaMailSender.class);
         // createMimeMessage solo arma el mensaje en memoria; no abre ninguna conexion
         when(sender.createMimeMessage()).thenAnswer(i -> new JavaMailSenderImpl().createMimeMessage());
@@ -46,6 +50,7 @@ class NotificacionServiceTest {
         paciente = new Usuario();
         paciente.setNombre("Ana López");
         paciente.setEmail("ana@example.com");
+        paciente.setTelefono("+525512345678");
         Servicio servicio = new Servicio();
         servicio.setNombre("Consulta general");
         cita = new Cita();
@@ -55,7 +60,7 @@ class NotificacionServiceTest {
     }
 
     private NotificacionService servicio(boolean activo) {
-        return new NotificacionService("https://sitio.test", activo, "no-reply@sitio.test", proveedor, ZONA);
+        return new NotificacionService("https://sitio.test", activo, "no-reply@sitio.test", proveedor, ZONA, twilio);
     }
 
     @Test
@@ -63,6 +68,15 @@ class NotificacionServiceTest {
         servicio(true).notificarCitaConfirmada(cita);
 
         verify(sender).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void confirmarEnviaWhatsAppYCancelarEnviaSms() {
+        servicio(true).notificarCitaConfirmada(cita);
+        servicio(true).notificarCitaCancelada(cita);
+
+        verify(twilio).enviarWhatsApp(eq("+525512345678"), contains("confirmada"));
+        verify(twilio).enviarSms(eq("+525512345678"), contains("cancelada"));
     }
 
     @Test
