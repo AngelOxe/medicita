@@ -21,7 +21,7 @@ const EMPTY = { nombre: '', email: '', telefono: '', password: '', confirm: '' }
 
 export default function Register() {
   const navigate = useNavigate()
-  const toast = useToast()
+  const { show } = useToast()
 
   const [values, setValues] = useState(EMPTY)
   const [touched, setTouched] = useState({})
@@ -64,7 +64,7 @@ export default function Register() {
         telefono: values.telefono.trim(),
         password: values.password,
       })
-      toast.success('Cuenta creada. Ya puedes iniciar sesión.')
+      show('Cuenta creada. Ya puedes iniciar sesión.', 'success')
       navigate('/login', { replace: true })
     } catch (error) {
       const fields = getFieldErrors(error)

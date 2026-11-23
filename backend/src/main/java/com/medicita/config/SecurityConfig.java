@@ -54,8 +54,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/salud")
                         .permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/perfil")
+                        .requestMatchers("/api/perfil")
                         .authenticated()
+
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard/resumen")
+                        .hasAnyRole("ADMIN", "MEDICO")
 
                         .requestMatchers(HttpMethod.POST, "/api/auth/logout")
                         .authenticated()
@@ -69,7 +72,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/servicios", "/api/servicios/*")
                         .hasAnyRole("ADMIN", "MEDICO")
 
-                        // Agenda: solo ADMIN y MEDICO.
+                        // Agenda (horarios y bloqueos): solo ADMIN y MEDICO.
                         .requestMatchers(
                                 "/api/horarios", "/api/horarios/**",
                                 "/api/bloqueos", "/api/bloqueos/**")
@@ -78,6 +81,22 @@ public class SecurityConfig {
                         // Disponibilidad: cualquier usuario autenticado.
                         .requestMatchers(HttpMethod.GET, "/api/disponibilidad")
                         .authenticated()
+
+                        // Citas: aqui solo se decide el rol; si la cita es "suya" lo decide CitaService.
+                        // /mias va antes que /* para que "mias" no se tome como un id.
+                        .requestMatchers(HttpMethod.POST, "/api/citas")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/citas/mias")
+                        .hasRole("PACIENTE")
+                        .requestMatchers(HttpMethod.GET, "/api/citas")
+                        .hasAnyRole("ADMIN", "MEDICO")
+                        .requestMatchers(HttpMethod.GET, "/api/citas/*")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/citas/*/cancelar")
+                        .authenticated()
+                        // Marcar completada o no asistio es un acto de la consulta: solo el MEDICO.
+                        .requestMatchers(HttpMethod.PATCH, "/api/citas/*/estado")
+                        .hasRole("MEDICO")
 
                         .anyRequest()
                         .denyAll()

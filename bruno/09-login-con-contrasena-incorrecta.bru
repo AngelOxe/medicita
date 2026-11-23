@@ -1,0 +1,26 @@
+meta {
+  name: 09 - Login con contrasena incorrecta
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  { "email": "{{adminEmail}}", "password": "ContrasenaIncorrecta#1" }
+}
+
+tests {
+  test("Rechaza credenciales invalidas con 401", function () {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getBody()).not.to.have.property("token");
+  });
+}

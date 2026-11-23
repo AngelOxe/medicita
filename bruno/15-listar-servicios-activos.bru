@@ -1,0 +1,29 @@
+meta {
+  name: 15 - Listar servicios activos
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{baseUrl}}/api/servicios?activo=true&size=50
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenAdmin}}
+}
+
+script:post-response {
+  if (res.getStatus() === 200 && res.getBody().content.length) {
+    bru.setVar("servicioId", res.getBody().content[0].id);
+  }
+}
+
+tests {
+  test("Lista los servicios activos", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().content.length).to.be.greaterThan(0);
+    res.getBody().content.forEach((s) => expect(s.activo).to.equal(true));
+  });
+}

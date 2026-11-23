@@ -14,6 +14,7 @@ import { formatPrecio } from '../lib/format'
 import {
   actualizarServicio,
   desactivarServicio,
+  eliminarServicio,
   listarServicios,
 } from '../services/servicioService'
 
@@ -34,6 +35,7 @@ export default function Servicios() {
 
   const [formulario, setFormulario] = useState(null) // null | { servicio: objeto | null }
   const [aDesactivar, setADesactivar] = useState(null)
+  const [aEliminar, setAEliminar] = useState(null)
   const [procesando, setProcesando] = useState(false)
 
   const guardado = (mensaje) => {
@@ -53,6 +55,21 @@ export default function Servicios() {
       show(getErrorMessage(error), 'error')
     } finally {
       setProcesando(false)
+    }
+  }
+
+  const eliminar = async () => {
+    setProcesando(true)
+    try {
+      await eliminarServicio(aEliminar.id)
+      show('Servicio eliminado.', 'success')
+      list.reload()
+    } catch (error) {
+      // 422 si ya tuvo citas: en ese caso solo se puede desactivar
+      show(getErrorMessage(error), 'error')
+    } finally {
+      setProcesando(false)
+      setAEliminar(null)
     }
   }
 
@@ -111,6 +128,9 @@ export default function Servicios() {
               Activar
             </button>
           )}
+          <button type="button" onClick={() => setAEliminar(s)} className="text-danger hover:underline">
+            Eliminar
+          </button>
         </div>
       ),
     },
@@ -183,6 +203,17 @@ export default function Servicios() {
         loading={procesando}
         onConfirm={desactivar}
         onCancel={() => !procesando && setADesactivar(null)}
+      />
+
+      <ConfirmModal
+        open={Boolean(aEliminar)}
+        title="¿Eliminar este servicio?"
+        message={`"${aEliminar?.nombre}" se borrará de forma definitiva. Si ya tiene citas registradas no se podrá eliminar; en ese caso desactívalo.`}
+        confirmText="Eliminar"
+        variant="danger"
+        loading={procesando}
+        onConfirm={eliminar}
+        onCancel={() => !procesando && setAEliminar(null)}
       />
     </div>
   )

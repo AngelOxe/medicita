@@ -9,11 +9,15 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -66,8 +70,46 @@ class RolesSecurityTest {
                 .andExpect(jsonPath("$.estado").value("OK"));
     }
 
+    @Test
+    @WithMockUser(roles = "PACIENTE")
+    void pacienteNoPuedeModificarServiciosNiAgenda() throws Exception {
+        mockMvc.perform(post("/api/servicios")).andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/horarios")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void adminAdministraServiciosYAgendaPeroNoMarcaElEstadoDeLasCitas() throws Exception {
+        mockMvc.perform(post("/api/servicios")).andExpect(status().isOk());
+        mockMvc.perform(post("/api/horarios")).andExpect(status().isOk());
+        mockMvc.perform(patch("/api/citas/1/estado")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDICO")
+    void medicoAdministraServiciosYAgendaYMarcaElEstadoDeLasCitas() throws Exception {
+        mockMvc.perform(post("/api/servicios")).andExpect(status().isOk());
+        mockMvc.perform(post("/api/horarios")).andExpect(status().isOk());
+        mockMvc.perform(patch("/api/citas/1/estado")).andExpect(status().isOk());
+    }
+
     @RestController
     static class ControladorPrueba {
+
+        @PostMapping({"/api/servicios", "/api/horarios"})
+        public Map<String, String> escribir() {
+            return Map.of("estado", "OK");
+        }
+
+        @GetMapping("/api/horarios")
+        public Map<String, String> leerHorarios() {
+            return Map.of("estado", "OK");
+        }
+
+        @PatchMapping("/api/citas/{id}/estado")
+        public Map<String, String> cambiarEstado(@org.springframework.web.bind.annotation.PathVariable Long id) {
+            return Map.of("estado", "OK");
+        }
 
         @GetMapping("/api/usuarios/prueba")
         public Map<String, String> comprobarAcceso() {

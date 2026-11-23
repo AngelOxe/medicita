@@ -1,0 +1,23 @@
+meta {
+  name: 32 - Dashboard del medico
+  type: http
+  seq: 32
+}
+
+get {
+  url: {{baseUrl}}/api/dashboard/resumen
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenMedico}}
+}
+
+tests {
+  test("El medico ve el resumen", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.have.property("porEstado");
+    expect(res.getBody().semana).to.be.an("array");
+  });
+}

@@ -1,0 +1,22 @@
+meta {
+  name: 30 - Medico lista citas
+  type: http
+  seq: 30
+}
+
+get {
+  url: {{baseUrl}}/api/citas?estado=cancelada&size=5
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenMedico}}
+}
+
+tests {
+  test("El medico ve las citas con filtro de estado", function () {
+    expect(res.getStatus()).to.equal(200);
+    res.getBody().content.forEach((c) => expect(c.estado).to.equal("cancelada"));
+  });
+}

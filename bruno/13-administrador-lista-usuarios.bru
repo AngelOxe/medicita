@@ -1,0 +1,25 @@
+meta {
+  name: 13 - Administrador lista usuarios
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/api/usuarios?page=0&size=5
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenAdmin}}
+}
+
+tests {
+  test("El administrador ve usuarios paginados", function () {
+    expect(res.getStatus()).to.equal(200);
+    const pagina = res.getBody();
+    expect(pagina.content).to.be.an("array");
+    expect(pagina.size).to.equal(5);
+    expect(pagina.content[0]).not.to.have.property("passwordHash");
+  });
+}

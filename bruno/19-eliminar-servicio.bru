@@ -1,0 +1,21 @@
+meta {
+  name: 19 - Eliminar servicio
+  type: http
+  seq: 19
+}
+
+delete {
+  url: {{baseUrl}}/api/servicios/{{servicioQaId}}?definitivo=true
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenMedico}}
+}
+
+tests {
+  test("El medico tambien puede eliminar un servicio sin citas", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

@@ -1,0 +1,26 @@
+meta {
+  name: 34 - Horario con fin antes de inicio
+  type: http
+  seq: 34
+}
+
+post {
+  url: {{baseUrl}}/api/horarios
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{tokenMedico}}
+}
+
+body:json {
+  { "diaSemana": 7, "horaInicio": "12:00", "horaFin": "10:00", "activo": true, "servicioIds": [{{servicioId}}] }
+}
+
+tests {
+  test("Un horario invalido devuelve 422", function () {
+    expect(res.getStatus()).to.equal(422);
+  });
+}

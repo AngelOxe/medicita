@@ -1,0 +1,21 @@
+meta {
+  name: 14 - Medico no puede listar usuarios
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/api/usuarios
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenMedico}}
+}
+
+tests {
+  test("El medico recibe 403 en usuarios", function () {
+    expect(res.getStatus()).to.equal(403);
+  });
+}

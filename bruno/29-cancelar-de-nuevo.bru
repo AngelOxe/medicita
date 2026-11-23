@@ -1,0 +1,21 @@
+meta {
+  name: 29 - Cancelar de nuevo
+  type: http
+  seq: 29
+}
+
+patch {
+  url: {{baseUrl}}/api/citas/{{citaId}}/cancelar
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenPaciente}}
+}
+
+tests {
+  test("Cancelar una cita ya cancelada devuelve 422", function () {
+    expect(res.getStatus()).to.equal(422);
+  });
+}

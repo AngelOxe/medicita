@@ -20,3 +20,22 @@ app.timezone=America/Mexico_City
 
 # URL del frontend (se usa en el enlace de recuperar contrasena)
 app.frontend-url=http://localhost:5173
+
+# Correo: Postfix local del servidor. En desarrollo se deja app.mail.enabled=false (solo escribe en el log)
+app.mail.enabled=false
+app.mail.from=no-reply@tu-dominio.com
+spring.mail.host=localhost
+spring.mail.port=25
+spring.mail.properties.mail.smtp.connectiontimeout=3000
+spring.mail.properties.mail.smtp.timeout=5000
+spring.mail.properties.mail.smtp.writetimeout=5000
+
+# SMS y WhatsApp con Twilio. En desarrollo se deja app.twilio.enabled=false (solo escribe en el log)
+app.twilio.enabled=false
+app.twilio.account-sid=CAMBIAR
+app.twilio.auth-token=CAMBIAR
+app.twilio.sms-from=+10000000000
+# Cuenta de prueba: plantilla de SMS y ContentSid de WhatsApp (vacios si la cuenta acepta texto libre)
+app.twilio.sms-template=sms_appointment_reminders
+app.twilio.whatsapp-from=whatsapp:+10000000000
+app.twilio.whatsapp-content-sid=CAMBIAR

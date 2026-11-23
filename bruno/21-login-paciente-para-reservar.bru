@@ -1,0 +1,31 @@
+meta {
+  name: 21 - Login paciente para reservar
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  { "email": "{{emailPrueba}}", "password": "Paciente#2026" }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    bru.setVar("tokenPaciente", res.getBody().token);
+  }
+}
+
+tests {
+  test("El paciente registrado inicia sesion", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

@@ -1,0 +1,22 @@
+meta {
+  name: 33 - Horarios del medico
+  type: http
+  seq: 33
+}
+
+get {
+  url: {{baseUrl}}/api/horarios?activo=true&size=100
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenMedico}}
+}
+
+tests {
+  test("El medico lista sus horarios", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().content).to.be.an("array");
+  });
+}

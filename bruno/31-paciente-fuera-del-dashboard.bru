@@ -1,0 +1,21 @@
+meta {
+  name: 31 - Paciente fuera del dashboard
+  type: http
+  seq: 31
+}
+
+get {
+  url: {{baseUrl}}/api/dashboard/resumen
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenPaciente}}
+}
+
+tests {
+  test("El paciente no ve el dashboard: 403", function () {
+    expect(res.getStatus()).to.equal(403);
+  });
+}

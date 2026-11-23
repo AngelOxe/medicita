@@ -1,0 +1,22 @@
+meta {
+  name: 28 - Cancelar cita
+  type: http
+  seq: 28
+}
+
+patch {
+  url: {{baseUrl}}/api/citas/{{citaId}}/cancelar
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenPaciente}}
+}
+
+tests {
+  test("El paciente cancela su cita", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().estado).to.equal("cancelada");
+  });
+}

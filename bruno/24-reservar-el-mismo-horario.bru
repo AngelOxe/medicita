@@ -1,0 +1,26 @@
+meta {
+  name: 24 - Reservar el mismo horario
+  type: http
+  seq: 24
+}
+
+post {
+  url: {{baseUrl}}/api/citas
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{tokenPaciente}}
+}
+
+body:json {
+  { "servicioId": {{servicioId}}, "inicio": "{{slotInicio}}" }
+}
+
+tests {
+  test("Un horario ocupado devuelve 422", function () {
+    expect(res.getStatus()).to.equal(422);
+  });
+}
