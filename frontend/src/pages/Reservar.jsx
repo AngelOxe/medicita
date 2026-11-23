@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CalendarCheck, Clock3, Info, Stethoscope } from 'lucide-react'
 import Button from '../components/ui/Button'
@@ -16,6 +16,14 @@ const diaFmt = new Intl.DateTimeFormat('es-MX', { timeZone: ZONA, weekday: 'long
 const hoyISO = () => new Intl.DateTimeFormat('sv-SE', { timeZone: ZONA }).format(new Date())
 
 const PASO_MS = 30 * 60 * 1000 // los horarios se ofrecen cada 30 minutos
+const DIAS_BUSQUEDA = 14
+
+// Suma días a una fecha AAAA-MM-DD sin depender de la zona horaria
+const sumarDias = (iso, n) => {
+  const d = new Date(`${iso}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}
 
 const AVISOS = [
   'Llega 10 minutos antes de tu hora para que la consulta empiece puntual.',
@@ -36,6 +44,18 @@ export default function Reservar() {
   const [errorSlots, setErrorSlots] = useState('')
   const [slot, setSlot] = useState(null)
   const [reservando, setReservando] = useState(false)
+  const horarioRef = useRef(null)
+  const confirmarRef = useRef(null)
+  const busqueda = useRef({ activa: false, dias: 0 }) // búsqueda automática del próximo día con horarios
+
+  // Al elegir servicio o un horario, la pantalla baja sola a la parte que sigue
+  useEffect(() => {
+    if (servicio) horarioRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [servicio])
+
+  useEffect(() => {
+    if (slot) confirmarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [slot])
 
   useEffect(() => {
     listarServicios({ activo: true, size: 50, page: 0 })
@@ -50,6 +70,14 @@ export default function Reservar() {
     obtenerDisponibilidad(servicio.id, fecha)
       .then((d) => {
         if (!activo) return
+        // Si el día no tiene horarios libres, se prueba el siguiente (hasta DIAS_BUSQUEDA días)
+        const auto = busqueda.current
+        if (d.slots.length === 0 && auto.activa && auto.dias < DIAS_BUSQUEDA) {
+          auto.dias += 1
+          setFecha(sumarDias(fecha, 1))
+          return
+        }
+        auto.activa = false
         setSlots(d.slots)
         setErrorSlots('')
       })
@@ -64,12 +92,16 @@ export default function Reservar() {
   }, [servicio, fecha])
 
   const elegirServicio = (s) => {
+    if (servicio?.id === s.id) return // mismo servicio: nada que recargar
+    busqueda.current = { activa: true, dias: 0 }
     setServicio(s)
+    setFecha(hoyISO())
     setSlots(null)
     setSlot(null)
   }
 
   const cambiarFecha = (valor) => {
+    busqueda.current.activa = false
     setFecha(valor)
     setSlots(null)
     setSlot(null)
@@ -152,26 +184,13 @@ export default function Reservar() {
       </section>
 
       {servicio && (
-        <section className="mt-6 rounded-xl border border-brand-200 bg-brand-50 p-5">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
-            <Info size={16} className="text-brand-600" /> Antes de tu cita: {servicio.nombre}
-          </h2>
-          <p className="mt-2 text-sm text-ink">
-            Duración aproximada de <strong>{servicio.duracionMin} minutos</strong> y costo de{' '}
-            <strong>{formatPrecio(servicio.precio)}</strong>, que se paga en el consultorio.
-          </p>
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
-            {AVISOS.map((a) => (
-              <li key={a}>{a}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {servicio && (
-        <section className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold text-ink">2. Día y horario</h2>
+        <section ref={horarioRef} className="mt-8 scroll-mt-4">
+          <h2 className="mb-3 text-sm font-semibold text-ink">2. Día y horario: {servicio.nombre}</h2>
           <div className="rounded-xl border border-line bg-white p-5">
+            <p className="mb-4 text-sm text-muted">
+              Duración aproximada de <strong className="text-ink">{servicio.duracionMin} minutos</strong> y costo de{' '}
+              <strong className="text-ink">{formatPrecio(servicio.precio)}</strong>, que se paga en el consultorio.
+            </p>
             <label htmlFor="fecha" className="mb-1.5 block text-sm font-medium text-ink">
               Fecha
             </label>
@@ -243,7 +262,7 @@ export default function Reservar() {
       )}
 
       {servicio && slot && (
-        <section className="mt-8 rounded-xl border border-brand-200 bg-brand-50 p-5">
+        <section ref={confirmarRef} className="mt-8 rounded-xl border border-brand-200 bg-brand-50 p-5">
           <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink">
             <CalendarCheck size={16} className="text-brand-600" /> 3. Confirma tu cita
           </h2>
@@ -256,6 +275,19 @@ export default function Reservar() {
           <Button className="mt-4" loading={reservando} onClick={confirmar}>
             Confirmar reserva
           </Button>
+        </section>
+      )}
+
+      {servicio && (
+        <section className="mt-8 rounded-xl border border-line bg-white p-5">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
+            <Info size={16} className="text-brand-600" /> Antes de tu cita
+          </h2>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
+            {AVISOS.map((a) => (
+              <li key={a}>{a}</li>
+            ))}
+          </ul>
         </section>
       )}
     </div>
