@@ -1,0 +1,27 @@
+meta {
+  name: 10 - Registro con datos invalidos
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  { "nombre": "", "email": "no-es-correo", "telefono": "123", "password": "corta" }
+}
+
+tests {
+  test("Devuelve 400 con el detalle de cada campo", function () {
+    expect(res.getStatus()).to.equal(400);
+    const campos = res.getBody().fieldErrors.map((e) => e.field);
+    expect(campos).to.include.members(["email", "password"]);
+  });
+}

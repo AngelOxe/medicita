@@ -1,0 +1,21 @@
+meta {
+  name: 35 - Administrador no elimina su cuenta
+  type: http
+  seq: 35
+}
+
+delete {
+  url: {{baseUrl}}/api/usuarios/1?definitivo=true
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenAdmin}}
+}
+
+tests {
+  test("No puede eliminar su propia cuenta: 422", function () {
+    expect(res.getStatus()).to.equal(422);
+  });
+}

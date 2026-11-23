@@ -1,0 +1,21 @@
+meta {
+  name: 20 - Servicio inexistente
+  type: http
+  seq: 20
+}
+
+delete {
+  url: {{baseUrl}}/api/servicios/999999?definitivo=true
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenAdmin}}
+}
+
+tests {
+  test("Un servicio que no existe devuelve 404", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

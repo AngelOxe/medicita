@@ -1,0 +1,33 @@
+meta {
+  name: 23 - Reservar cita
+  type: http
+  seq: 23
+}
+
+post {
+  url: {{baseUrl}}/api/citas
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{tokenPaciente}}
+}
+
+body:json {
+  { "servicioId": {{servicioId}}, "inicio": "{{slotInicio}}" }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("citaId", res.getBody().id);
+  }
+}
+
+tests {
+  test("Reserva la cita como confirmada", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().estado).to.equal("confirmada");
+  });
+}

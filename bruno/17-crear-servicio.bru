@@ -1,0 +1,33 @@
+meta {
+  name: 17 - Crear servicio
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/api/servicios
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{tokenAdmin}}
+}
+
+body:json {
+  { "nombre": "Servicio Bruno", "descripcion": "Prueba automatica", "duracionMin": 25, "precio": 123.5, "activo": true }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("servicioQaId", res.getBody().id);
+  }
+}
+
+tests {
+  test("El administrador crea un servicio", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().nombre).to.equal("Servicio Bruno");
+  });
+}

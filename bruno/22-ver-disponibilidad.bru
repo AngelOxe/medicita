@@ -1,0 +1,35 @@
+meta {
+  name: 22 - Ver disponibilidad
+  type: http
+  seq: 22
+}
+
+get {
+  url: {{baseUrl}}/api/disponibilidad?servicioId={{servicioId}}&fecha={{fechaCita}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenPaciente}}
+}
+
+script:pre-request {
+  // Proximo martes: los horarios de la semilla son de lunes a viernes
+  const fecha = new Date();
+  do { fecha.setDate(fecha.getDate() + 1); } while (fecha.getDay() !== 2);
+  bru.setVar("fechaCita", fecha.toISOString().slice(0, 10));
+}
+
+script:post-response {
+  if (res.getStatus() === 200 && res.getBody().slots.length) {
+    bru.setVar("slotInicio", res.getBody().slots[0].inicio);
+  }
+}
+
+tests {
+  test("Devuelve horarios libres para el servicio", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().slots.length).to.be.greaterThan(0);
+  });
+}

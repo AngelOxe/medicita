@@ -1,0 +1,23 @@
+meta {
+  name: 27 - Mis citas del paciente
+  type: http
+  seq: 27
+}
+
+get {
+  url: {{baseUrl}}/api/citas/mias?tipo=proximas
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{tokenPaciente}}
+}
+
+tests {
+  test("La cita reservada aparece en sus proximas citas", function () {
+    expect(res.getStatus()).to.equal(200);
+    const ids = res.getBody().content.map((c) => c.id);
+    expect(ids).to.include(bru.getVar("citaId"));
+  });
+}

@@ -1,0 +1,32 @@
+meta {
+  name: 08 - Login medico
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  { "email": "{{medicoEmail}}", "password": "{{medicoPassword}}" }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    bru.setVar("tokenMedico", res.getBody().token);
+  }
+}
+
+tests {
+  test("El medico inicia sesion", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().usuario.rol).to.equal("MEDICO");
+  });
+}

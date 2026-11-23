@@ -1,0 +1,17 @@
+meta {
+  name: 12 - Sin token no hay acceso
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{baseUrl}}/api/citas
+  body: none
+  auth: none
+}
+
+tests {
+  test("Una ruta protegida sin token devuelve 401", function () {
+    expect(res.getStatus()).to.equal(401);
+  });
+}

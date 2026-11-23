@@ -1,0 +1,26 @@
+meta {
+  name: 11 - Registro con correo duplicado
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  { "nombre": "Paciente Bruno", "email": "{{emailPrueba}}", "telefono": "+525500000000", "password": "Paciente#2026" }
+}
+
+tests {
+  test("Un correo ya registrado devuelve 422", function () {
+    expect(res.getStatus()).to.equal(422);
+    expect(res.getBody().message).to.contain("correo");
+  });
+}

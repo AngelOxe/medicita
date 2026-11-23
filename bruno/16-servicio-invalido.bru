@@ -1,0 +1,27 @@
+meta {
+  name: 16 - Servicio invalido
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{baseUrl}}/api/servicios
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{tokenAdmin}}
+}
+
+body:json {
+  { "nombre": "", "duracionMin": 0, "precio": -1, "activo": true }
+}
+
+tests {
+  test("Un servicio invalido devuelve 400", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getBody().fieldErrors.length).to.be.greaterThan(0);
+  });
+}
