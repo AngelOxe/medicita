@@ -8,8 +8,8 @@ Sistema web para la gestión de citas médicas de un consultorio. Los pacientes 
 |---|---|
 | Sitio (HTTPS) | https://medicita-eq02.systems |
 | URL base de la API | https://medicita-eq02.systems/api |
-| Tablero de GitHub Projects | _Pendiente: agregar el enlace_ |
-| Prototipo de Figma | _Pendiente: agregar el enlace_ |
+| Tablero de GitHub Projects | [Tablero del proyecto](https://github.com/users/AngelOxe/projects/2) |
+| Prototipo de Figma | [Prototipo en Figma](https://www.figma.com/design/ec8Nn11WGY6Yyza86dSoYU/Sistema-de-citas-medicas) |
 
 ## Equipo
 
@@ -313,7 +313,7 @@ Todo corre en un VPS propio (AWS EC2, Ubuntu):
 
 ## Diseño
 
-Prototipo y diseño en Figma: _Pendiente: agregar el enlace_.
+Prototipo y diseño en Figma: [ver prototipo](https://www.figma.com/design/ec8Nn11WGY6Yyza86dSoYU/Sistema-de-citas-medicas).
 
 ## Pruebas de API con Bruno
 
@@ -325,4 +325,4 @@ Para ejecutarla, abre la carpeta en Bruno, elige el entorno `Local` y escribe en
 
 - Ramas por tarea (`feature/...`) integradas a `main` mediante Pull Requests.
 - Commits con mensajes descriptivos del avance real.
-- Tablero de GitHub Projects con las columnas Backlog, To Do, In Progress, In Review y Done: _enlace pendiente_.
+- Tablero de GitHub Projects con las columnas Backlog, To Do, In Progress, In Review y Done: [ver tablero](https://github.com/users/AngelOxe/projects/2).
