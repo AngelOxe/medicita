@@ -137,13 +137,13 @@ cd frontend && npm run lint      # revisión del frontend
 
 ## Cuentas de prueba
 
-La base trae un usuario por rol. Las contraseñas no se publican en el repositorio: se entregan por separado a quien evalúa. Cualquier persona puede además crear su propio paciente desde `/registro`.
+La base trae un usuario por rol, cargado desde la migración de datos de prueba (`V2__datos_semilla.sql`). Estas son las cuentas de evaluación; no afectan los datos de otros usuarios. Cualquier persona puede además crear su propio paciente desde `/registro`.
 
-| Rol | Correo |
-|---|---|
-| Administrador | admin@medicita.test |
-| Médico | daniel.martinez@medicita.test |
-| Paciente | ana.lopez@example.com |
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Administrador | admin@medicita.test | Admin#2026 |
+| Médico | daniel.martinez@medicita.test | Medico#2026 |
+| Paciente | Crea tu propia cuenta en `/registro`, o pide al admin que la dé de alta en Usuarios. |  |
 
 La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial. Se valida en el frontend (debajo de cada campo) y en el backend con Bean Validation.
 
@@ -314,6 +314,26 @@ Todo corre en un VPS propio (AWS EC2, Ubuntu):
 ## Diseño
 
 Prototipo y diseño en Figma: [ver prototipo](https://www.figma.com/design/ec8Nn11WGY6Yyza86dSoYU/Sistema-de-citas-medicas).
+
+### Logo
+
+<img src="frontend/public/logo.svg" alt="Logo de MediCita" width="96" />
+
+El logo es un calendario con una cruz médica en el centro: el calendario representa la reserva de citas, núcleo de la aplicación, y la cruz remite de forma directa al ámbito médico. Es un diseño propio del equipo, hecho en SVG, y se usa tanto en la pantalla de inicio de sesión como en el ícono de la pestaña del navegador (`frontend/public/favicon.svg`).
+
+### Paleta de colores
+
+La paleta se construyó alrededor de un solo matiz, el azul, en distintos tonos de saturación y luminosidad (una paleta monocromática con acentos semánticos):
+
+| Color | Valor | Uso | Por qué |
+|---|---|---|---|
+| Azul de marca | `#0284c7` | Botones primarios, enlaces, elementos activos | El azul es el color que más se asocia con la confianza, la calma y la profesionalidad en entornos de salud; por eso lo usan la mayoría de los sistemas médicos y bancarios. |
+| Azul oscuro (menú) | `#164e63` / `#0c3c51` | Barra lateral, panel del login | Un azul casi marino, más oscuro y desaturado, para dar estabilidad visual a la navegación sin competir con el contenido. |
+| Azules claros | `#f0f9ff`, `#e0f2fe`, `#bae6fd` | Fondos de tarjetas activas, resaltados | Tintes muy claros del mismo matiz: aportan jerarquía (qué está seleccionado) sin introducir un color distinto, manteniendo la armonía monocromática. |
+| Gris neutro | `#f8fafc`, `#e2e8f0`, `#64748b`, `#0f172a` | Fondo general, bordes, texto | Grises con una leve temperatura fría, coherentes con el azul, para que el texto y los espacios en blanco no rompan la paleta. |
+| Verde / ámbar / rojo | `#15803d`, `#b45309`, `#dc2626` | Estados de la cita (confirmada, pendiente, cancelada) | Son los únicos colores fuera del azul: se usan solo como código de estado (semáforo), porque ahí sí hace falta que un color distinto llame la atención de inmediato. |
+
+Mantener casi toda la interfaz en un solo matiz reduce la carga visual en pantallas con mucha información (tablas de citas, horarios, listas de usuarios) y dirige la vista del usuario hacia los tres colores de estado, que son los que de verdad necesita distinguir rápido.
 
 ## Pruebas de API con Bruno
 
