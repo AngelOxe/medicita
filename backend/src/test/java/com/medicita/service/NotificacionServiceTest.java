@@ -36,11 +36,13 @@ class NotificacionServiceTest {
     private Cita cita;
     private Usuario paciente;
     private TwilioService twilio;
+    private WhatsAppCloudService whatsapp;
 
     @SuppressWarnings("unchecked")
     @BeforeEach
     void preparar() {
         twilio = mock(TwilioService.class);
+        whatsapp = mock(WhatsAppCloudService.class);
         sender = mock(JavaMailSender.class);
         // createMimeMessage solo arma el mensaje en memoria; no abre ninguna conexion
         when(sender.createMimeMessage()).thenAnswer(i -> new JavaMailSenderImpl().createMimeMessage());
@@ -60,7 +62,7 @@ class NotificacionServiceTest {
     }
 
     private NotificacionService servicio(boolean activo) {
-        return new NotificacionService("https://sitio.test", activo, "no-reply@sitio.test", proveedor, ZONA, twilio);
+        return new NotificacionService("https://sitio.test", activo, "no-reply@sitio.test", proveedor, ZONA, twilio, whatsapp);
     }
 
     @Test
@@ -118,5 +120,35 @@ class NotificacionServiceTest {
 
         assertEquals("ana@example.com", enviado[0].getAllRecipients()[0].toString());
         assertTrue(enviado[0].getContent().toString().contains("https://sitio.test/restablecer?token=abc123"));
+    }
+
+    @Test
+    void conWhatsAppDeMetaActivoSeUsaLaPlantillaYNoElWhatsAppDeTwilio() {
+        when(whatsapp.estaActivo()).thenReturn(true);
+
+        servicio(false).notificarCitaConfirmada(cita);
+
+        verify(whatsapp).enviarConfirmacion(eq("+525512345678"), eq("Ana"), eq("Consulta general"), any());
+        verify(twilio, never()).enviarWhatsApp(any(), any());
+        verify(twilio).enviarSms(eq("+525512345678"), any());
+    }
+
+    @Test
+    void sinWhatsAppDeMetaSeSigueUsandoTwilio() {
+        when(whatsapp.estaActivo()).thenReturn(false);
+
+        servicio(false).notificarCitaConfirmada(cita);
+
+        verify(twilio).enviarWhatsApp(eq("+525512345678"), any());
+        verify(whatsapp, never()).enviarConfirmacion(any(), any(), any(), any());
+    }
+
+    @Test
+    void cancelarEnviaLaPlantillaDeCancelacionSoloSiMetaEstaActivo() {
+        when(whatsapp.estaActivo()).thenReturn(true);
+
+        servicio(false).notificarCitaCancelada(cita);
+
+        verify(whatsapp).enviarCancelacion(eq("+525512345678"), eq("Ana"), eq("Consulta general"), any());
     }
 }
