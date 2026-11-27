@@ -42,7 +42,7 @@ class WhatsAppCloudServiceTest {
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("Authorization", "Bearer token-de-prueba"))
                 .andExpect(jsonPath("$.messaging_product").value("whatsapp"))
-                .andExpect(jsonPath("$.to").value("525512345678"))
+                .andExpect(jsonPath("$.to").value("5215512345678"))
                 .andExpect(jsonPath("$.type").value("template"))
                 .andExpect(jsonPath("$.template.name").value("cita_confirmada"))
                 .andExpect(jsonPath("$.template.language.code").value("es_MX"))
@@ -80,6 +80,14 @@ class WhatsAppCloudServiceTest {
 
         // Sin plantilla de cancelacion no se hace ninguna llamada (el servidor falso fallaria si llegara una)
         whatsapp(true, "t", "").enviarCancelacion("+525512345678", "Ana", "Consulta", "hoy");
+    }
+
+    @Test
+    void losCelularesDeMexicoLlevanElUnoDespuesDeLaLada() {
+        org.junit.jupiter.api.Assertions.assertEquals("5219513193876", WhatsAppCloudService.destinoMeta("+529513193876"));
+        // Ya trae el 1, o es de otro pais: no se toca
+        org.junit.jupiter.api.Assertions.assertEquals("5219513193876", WhatsAppCloudService.destinoMeta("+5219513193876"));
+        org.junit.jupiter.api.Assertions.assertEquals("14155550100", WhatsAppCloudService.destinoMeta("+14155550100"));
     }
 
     @Test

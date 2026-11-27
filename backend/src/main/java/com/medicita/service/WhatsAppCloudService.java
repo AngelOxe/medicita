@@ -98,7 +98,7 @@ public class WhatsAppCloudService {
             }
             Map<String, Object> cuerpo = Map.of(
                     "messaging_product", "whatsapp",
-                    "to", telefono.substring(1),
+                    "to", destinoMeta(telefono),
                     "type", "template",
                     "template", Map.of(
                             "name", plantilla,
@@ -116,6 +116,18 @@ public class WhatsAppCloudService {
             // La cita ya se guardo o se cancelo: solo se deja constancia del fallo
             log.warn("[WhatsApp Meta] No se pudo enviar a {}: {}", telefono, error.getMessage());
         }
+    }
+
+    /**
+     * Meta entrega los celulares de Mexico con el formato 521 + 10 digitos (con un 1 despues de la lada).
+     * Con +52 y 10 digitos el mensaje se acepta pero no se entrega, asi que el 1 se agrega aqui.
+     */
+    static String destinoMeta(String telefono) {
+        String digitos = telefono.substring(1);
+        if (digitos.length() == 12 && digitos.startsWith("52")) {
+            return "521" + digitos.substring(2);
+        }
+        return digitos;
     }
 
     // Meta no acepta saltos de linea, tabuladores ni cuatro espacios seguidos en una variable
