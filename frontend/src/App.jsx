@@ -4,6 +4,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import AppLayout from './components/layout/AppLayout'
 import { ROLES } from './lib/roles'
 import Forbidden from './pages/Forbidden'
+import Privacidad from './pages/Privacidad'
 import Horarios from './pages/Horarios'
 import Servicios from './pages/Servicios'
 import UiDemo from './pages/UiDemo'
@@ -23,6 +24,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomeRedirect />} />
       <Route path="/403" element={<Forbidden />} />
+      <Route path="/privacidad" element={<Privacidad />} />
       <Route path="/ui-demo" element={<UiDemo />} />
 
       <Route element={<ProtectedRoute />}>
