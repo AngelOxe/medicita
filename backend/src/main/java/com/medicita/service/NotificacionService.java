@@ -20,7 +20,8 @@ import java.util.Locale;
  * El correo sale por JavaMailSender hacia el Postfix local del servidor (que lo firma con DKIM).
  * Si app.mail.enabled=false (valor por defecto, util en desarrollo) los mensajes solo se escriben en el log.
  * Un fallo al enviar nunca rompe la operacion principal: se registra y la reserva o la cancelacion siguen.
- * El SMS y el WhatsApp salen por TwilioService: confirmar una cita envia WhatsApp y SMS.
+ * El SMS sale por TwilioService. El WhatsApp sale por la API de Meta con una plantilla propia (WhatsAppCloudService)
+ * y, si esa no esta encendida, por Twilio. Confirmar una cita envia WhatsApp y SMS.
  */
 @Service
 public class NotificacionService {
@@ -35,6 +36,7 @@ public class NotificacionService {
     private final ObjectProvider<JavaMailSender> correo;
     private final ZoneId zona;
     private final TwilioService twilio;
+    private final WhatsAppCloudService whatsapp;
 
     public NotificacionService(
             @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl,
@@ -42,13 +44,15 @@ public class NotificacionService {
             @Value("${app.mail.from:no-reply@localhost}") String remitente,
             ObjectProvider<JavaMailSender> correo,
             ZoneId zona,
-            TwilioService twilio) {
+            TwilioService twilio,
+            WhatsAppCloudService whatsapp) {
         this.frontendUrl = frontendUrl;
         this.correoActivo = correoActivo;
         this.remitente = remitente;
         this.correo = correo;
         this.zona = zona;
         this.twilio = twilio;
+        this.whatsapp = whatsapp;
     }
 
     /** Reserva: correo de confirmacion (el WhatsApp se agrega con Twilio). */
@@ -63,7 +67,12 @@ public class NotificacionService {
         enviarCorreo(paciente.getEmail(), "Tu cita en MediCita está confirmada", cuerpo);
         String texto = "MediCita: tu cita de " + cita.getServicio().getNombre()
                 + " quedó confirmada para el " + fecha(cita) + ".";
-        twilio.enviarWhatsApp(paciente.getTelefono(), texto);
+        // Meta con plantilla propia; si esta apagado o falla (p. ej. plantilla aun sin aprobar), respaldo con Twilio
+        boolean enviadoPorMeta = whatsapp.estaActivo() && whatsapp.enviarConfirmacion(paciente.getTelefono(),
+                primerNombre(paciente), cita.getServicio().getNombre(), fecha(cita));
+        if (!enviadoPorMeta) {
+            twilio.enviarWhatsApp(paciente.getTelefono(), texto);
+        }
         twilio.enviarSms(paciente.getTelefono(), texto);
     }
 
@@ -77,9 +86,20 @@ public class NotificacionService {
                 + frontendUrl + "/reservar\n\n"
                 + "MediCita";
         enviarCorreo(paciente.getEmail(), "Tu cita en MediCita fue cancelada", cuerpo);
+        if (whatsapp.estaActivo()) {
+            whatsapp.enviarCancelacion(paciente.getTelefono(), primerNombre(paciente),
+                    cita.getServicio().getNombre(), fecha(cita));
+        }
         if (twilio.smsAceptaTextoLibre()) {
             twilio.enviarSms(paciente.getTelefono(), "MediCita: tu cita de " + cita.getServicio().getNombre()
                     + " del " + fecha(cita) + " fue cancelada.");
+        }
+    }
+
+    /** Cuenta nueva con telefono: WhatsApp de bienvenida con la plantilla propia (si Meta esta activo y hay plantilla). */
+    public void notificarCuentaCreada(Usuario usuario) {
+        if (whatsapp.estaActivo()) {
+            whatsapp.enviarBienvenida(usuario.getTelefono(), primerNombre(usuario));
         }
     }
 
@@ -97,6 +117,12 @@ public class NotificacionService {
             return;
         }
         enviarCorreo(usuario.getEmail(), "Restablece tu contraseña de MediCita", cuerpo);
+    }
+
+    private String primerNombre(Usuario paciente) {
+        String nombre = paciente.getNombre() == null ? "" : paciente.getNombre().trim();
+        int espacio = nombre.indexOf(' ');
+        return espacio > 0 ? nombre.substring(0, espacio) : nombre;
     }
 
     private String fecha(Cita cita) {

@@ -33,6 +33,18 @@ spring.mail.properties.mail.smtp.connectiontimeout=3000
 spring.mail.properties.mail.smtp.timeout=5000
 spring.mail.properties.mail.smtp.writetimeout=5000
 
+# WhatsApp con la API oficial de Meta (WhatsApp Cloud API) y una plantilla PROPIA aprobada en el panel de Meta.
+# Si esta apagado o sin token, el WhatsApp sale por Twilio (ver abajo). El token NUNCA se sube al repositorio.
+app.whatsapp.enabled=false
+app.whatsapp.phone-number-id=CAMBIAR
+app.whatsapp.token=CAMBIAR
+# Plantilla de confirmacion con 3 variables: {{1}} paciente, {{2}} servicio, {{3}} fecha y hora
+app.whatsapp.template-confirmada=cita_confirmada
+# Plantilla de cancelacion (opcional, mismas 3 variables). Vacia = no se envia WhatsApp al cancelar
+app.whatsapp.template-cancelada=
+# Plantilla de bienvenida al crear una cuenta, con 1 variable: {{1}} nombre. Vacia = no se envia
+app.whatsapp.template-bienvenida=
+app.whatsapp.language=es_MX
 # SMS y WhatsApp con Twilio. En desarrollo se deja app.twilio.enabled=false (solo escribe en el log)
 app.twilio.enabled=false
 app.twilio.account-sid=CAMBIAR
