@@ -6,6 +6,7 @@ export default function Avatar({ nombre, avatarUrl, className = '' }) {
       <img
         src={avatarUrl}
         alt={`Foto de ${nombre}`}
+        referrerPolicy="no-referrer"
         className={`h-9 w-9 rounded-full object-cover ${className}`}
       />
     )

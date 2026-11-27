@@ -1,0 +1,18 @@
+meta {
+  name: 36 - Google configuracion publica
+  type: http
+  seq: 36
+}
+
+get {
+  url: {{baseUrl}}/api/auth/google/config
+  body: none
+  auth: none
+}
+
+tests {
+  test("La ruta es publica y dice si Google esta habilitado", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().habilitado).to.be.a("boolean");
+  });
+}

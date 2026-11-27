@@ -20,11 +20,16 @@ public class Usuario {
     @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;
 
-    @Column(nullable = false, length = 20)
+    // Puede estar vacio en cuentas creadas con Google: el paciente lo completa en su perfil
+    @Column(length = 20)
     private String telefono;
 
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
+
+    // Identificador de la cuenta de Google vinculada (vacio en cuentas normales)
+    @Column(name = "google_sub", length = 255)
+    private String googleSub;
 
     @Column(nullable = false)
     private boolean activo = true;
@@ -88,6 +93,14 @@ public class Usuario {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public String getGoogleSub() {
+        return googleSub;
+    }
+
+    public void setGoogleSub(String googleSub) {
+        this.googleSub = googleSub;
     }
 
     public boolean isActivo() {

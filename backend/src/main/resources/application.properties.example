@@ -21,6 +21,9 @@ app.timezone=America/Mexico_City
 # URL del frontend (se usa en el enlace de recuperar contrasena)
 app.frontend-url=http://localhost:5173
 
+# Iniciar sesion con Google: ID de cliente OAuth (tipo "Aplicacion web") de Google Cloud Console.
+# Es un dato PUBLICO, no un secreto. Si se deja vacio, el boton de Google se oculta y la ruta no esta disponible.
+app.google.client-id=
 # Correo: Postfix local del servidor. En desarrollo se deja app.mail.enabled=false (solo escribe en el log)
 app.mail.enabled=false
 app.mail.from=no-reply@tu-dominio.com

@@ -46,12 +46,13 @@ public class SecurityConfig {
                         .requestMatchers(
         HttpMethod.POST,
         "/api/auth/login",
+        "/api/auth/google",
         "/api/auth/register",
         "/api/auth/forgot-password",
         "/api/auth/reset-password"
 )
 .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/salud")
+                        .requestMatchers(HttpMethod.GET, "/api/salud", "/api/auth/google/config")
                         .permitAll()
 
                         .requestMatchers("/api/perfil")

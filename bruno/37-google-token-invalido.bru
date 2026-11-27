@@ -1,0 +1,25 @@
+meta {
+  name: 37 - Login con Google con token invalido
+  type: http
+  seq: 37
+}
+
+post {
+  url: {{baseUrl}}/api/auth/google
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  { "credential": "token-falso-que-no-viene-de-google" }
+}
+
+tests {
+  test("Un token que no es de Google se rechaza (401, o 422 si Google no esta configurado)", function () {
+    expect([401, 422]).to.include(res.getStatus());
+  });
+}

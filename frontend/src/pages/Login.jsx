@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Mail } from 'lucide-react'
 import AuthShell from '../components/auth/AuthShell'
+import GoogleButton from '../components/auth/GoogleButton'
 import PasswordInput from '../components/auth/PasswordInput'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
@@ -13,7 +14,7 @@ import { validateEmail } from '../lib/validators'
 const validatePass = (v) => (v ? '' : 'La contraseña es obligatoria.')
 
 export default function Login() {
-  const { user, login } = useAuth()
+  const { user, login, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -59,6 +60,16 @@ export default function Login() {
     }
   }
 
+  const handleGoogle = async (credential) => {
+    setFormError('')
+    try {
+      const usuario = await loginWithGoogle(credential)
+      navigate(location.state?.from?.pathname || homeByRole[usuario.rol] || '/', { replace: true })
+    } catch (error) {
+      setFormError(getErrorMessage(error))
+    }
+  }
+
   return (
     <AuthShell title="Iniciar sesión" subtitle="Ingresa tus datos para acceder a tu cuenta.">
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -100,6 +111,8 @@ export default function Login() {
         <Button type="submit" loading={loading} className="w-full">
           Iniciar sesión
         </Button>
+
+        <GoogleButton onCredential={handleGoogle} onError={setFormError} />
 
         <p className="text-center text-sm text-muted">
           ¿No tienes cuenta?{' '}

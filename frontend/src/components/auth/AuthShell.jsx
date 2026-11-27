@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function AuthShell({ title, subtitle, children }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
@@ -10,7 +12,12 @@ export default function AuthShell({ title, subtitle, children }) {
           {children}
         </div>
 
-        <p className="text-xs text-muted">MediCita © 2026</p>
+        <p className="text-xs text-muted">
+          MediCita © 2026 ·{' '}
+          <Link to="/privacidad" className="hover:underline">
+            Aviso de privacidad
+          </Link>
+        </p>
       </div>
 
       <aside className="hidden flex-col items-center justify-center gap-6 bg-gradient-to-br from-[#14465b] to-sidebar-deep p-12 text-white lg:flex">
