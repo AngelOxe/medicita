@@ -33,7 +33,7 @@ class WhatsAppCloudServiceTest {
 
     private WhatsAppCloudService whatsapp(boolean activo, String token, String plantillaCancelada) {
         return new WhatsAppCloudService(constructor, activo, "v21.0", "123456789", token,
-                "cita_confirmada", plantillaCancelada, "es_MX");
+                "cita_confirmada", plantillaCancelada, "cuenta_creada", "es_MX");
     }
 
     @Test
@@ -88,6 +88,19 @@ class WhatsAppCloudServiceTest {
         // Ya trae el 1, o es de otro pais: no se toca
         org.junit.jupiter.api.Assertions.assertEquals("5219513193876", WhatsAppCloudService.destinoMeta("+5219513193876"));
         org.junit.jupiter.api.Assertions.assertEquals("14155550100", WhatsAppCloudService.destinoMeta("+14155550100"));
+    }
+
+    @Test
+    void laBienvenidaSeEnviaConUnaSolaVariable() {
+        servidor.expect(requestTo(URL))
+                .andExpect(jsonPath("$.template.name").value("cuenta_creada"))
+                .andExpect(jsonPath("$.template.components[0].parameters.length()").value(1))
+                .andExpect(jsonPath("$.template.components[0].parameters[0].text").value("Ana"))
+                .andRespond(withSuccess());
+
+        whatsapp(true, "t", "").enviarBienvenida("+525512345678", "Ana");
+
+        servidor.verify();
     }
 
     @Test

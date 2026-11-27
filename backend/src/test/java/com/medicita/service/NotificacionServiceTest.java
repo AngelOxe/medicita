@@ -134,6 +134,24 @@ class NotificacionServiceTest {
     }
 
     @Test
+    void unaCuentaNuevaRecibeLaBienvenidaPorWhatsAppSiMetaEstaActivo() {
+        when(whatsapp.estaActivo()).thenReturn(true);
+
+        servicio(false).notificarCuentaCreada(paciente);
+
+        verify(whatsapp).enviarBienvenida("+525512345678", "Ana");
+    }
+
+    @Test
+    void sinMetaNoSeEnviaBienvenida() {
+        when(whatsapp.estaActivo()).thenReturn(false);
+
+        servicio(false).notificarCuentaCreada(paciente);
+
+        verify(whatsapp, never()).enviarBienvenida(any(), any());
+    }
+
+    @Test
     void sinWhatsAppDeMetaSeSigueUsandoTwilio() {
         when(whatsapp.estaActivo()).thenReturn(false);
 

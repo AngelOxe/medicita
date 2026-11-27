@@ -19,14 +19,17 @@ public class RegistroService {
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
+    private final NotificacionService notificacionService;
 
     public RegistroService(
             UsuarioRepository usuarioRepository,
             RolRepository rolRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            NotificacionService notificacionService) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
         this.passwordEncoder = passwordEncoder;
+        this.notificacionService = notificacionService;
     }
 
     @Transactional
@@ -59,6 +62,8 @@ public class RegistroService {
             }
             throw exception;
         }
+
+        notificacionService.notificarCuentaCreada(usuario);
 
         return UsuarioResponse.de(usuario);
     }

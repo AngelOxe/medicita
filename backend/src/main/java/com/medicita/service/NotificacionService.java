@@ -96,6 +96,13 @@ public class NotificacionService {
         }
     }
 
+    /** Cuenta nueva con telefono: WhatsApp de bienvenida con la plantilla propia (si Meta esta activo y hay plantilla). */
+    public void notificarCuentaCreada(Usuario usuario) {
+        if (whatsapp.estaActivo()) {
+            whatsapp.enviarBienvenida(usuario.getTelefono(), primerNombre(usuario));
+        }
+    }
+
     public void enviarRecuperacionPassword(Usuario usuario, String token) {
         String enlace = frontendUrl + "/restablecer?token=" + token;
         String cuerpo = "Hola " + usuario.getNombre() + ":\n\n"

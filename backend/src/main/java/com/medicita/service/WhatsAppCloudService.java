@@ -35,6 +35,7 @@ public class WhatsAppCloudService {
     private final String phoneNumberId;
     private final String plantillaConfirmada;
     private final String plantillaCancelada;
+    private final String plantillaBienvenida;
     private final String idioma;
     private final RestClient cliente;
 
@@ -46,17 +47,21 @@ public class WhatsAppCloudService {
             @Value("${app.whatsapp.token:}") String token,
             @Value("${app.whatsapp.template-confirmada:cita_confirmada}") String plantillaConfirmada,
             @Value("${app.whatsapp.template-cancelada:}") String plantillaCancelada,
+            @Value("${app.whatsapp.template-bienvenida:}") String plantillaBienvenida,
             @Value("${app.whatsapp.language:es_MX}") String idioma) {
-        this(RestClient.builder(), activo, version, phoneNumberId, token, plantillaConfirmada, plantillaCancelada, idioma);
+        this(RestClient.builder(), activo, version, phoneNumberId, token, plantillaConfirmada, plantillaCancelada,
+                plantillaBienvenida, idioma);
     }
 
     WhatsAppCloudService(RestClient.Builder constructor, boolean activo, String version, String phoneNumberId,
-                         String token, String plantillaConfirmada, String plantillaCancelada, String idioma) {
+                         String token, String plantillaConfirmada, String plantillaCancelada,
+                         String plantillaBienvenida, String idioma) {
         this.activo = activo;
         this.phoneNumberId = phoneNumberId == null ? "" : phoneNumberId.trim();
         this.configurado = !this.phoneNumberId.isBlank() && token != null && !token.isBlank();
         this.plantillaConfirmada = plantillaConfirmada == null ? "" : plantillaConfirmada.trim();
         this.plantillaCancelada = plantillaCancelada == null ? "" : plantillaCancelada.trim();
+        this.plantillaBienvenida = plantillaBienvenida == null ? "" : plantillaBienvenida.trim();
         this.idioma = idioma;
         this.cliente = constructor
                 .baseUrl("https://graph.facebook.com/" + version)
@@ -77,6 +82,11 @@ public class WhatsAppCloudService {
     /** Solo se envia si hay una plantilla de cancelacion configurada (app.whatsapp.template-cancelada). */
     public void enviarCancelacion(String telefono, String paciente, String servicio, String fechaHora) {
         enviarPlantilla(telefono, plantillaCancelada, List.of(paciente, servicio, fechaHora));
+    }
+
+    /** Plantilla de bienvenida al crear una cuenta, con UNA variable: {{1}} nombre. */
+    public void enviarBienvenida(String telefono, String nombre) {
+        enviarPlantilla(telefono, plantillaBienvenida, List.of(nombre));
     }
 
     private void enviarPlantilla(String telefono, String plantilla, List<String> variables) {
