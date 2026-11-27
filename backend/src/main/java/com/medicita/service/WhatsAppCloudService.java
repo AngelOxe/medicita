@@ -75,31 +75,32 @@ public class WhatsAppCloudService {
     }
 
     /** Variables de la plantilla de confirmacion: {{1}} paciente, {{2}} servicio, {{3}} fecha y hora. */
-    public void enviarConfirmacion(String telefono, String paciente, String servicio, String fechaHora) {
-        enviarPlantilla(telefono, plantillaConfirmada, List.of(paciente, servicio, fechaHora));
+    public boolean enviarConfirmacion(String telefono, String paciente, String servicio, String fechaHora) {
+        return enviarPlantilla(telefono, plantillaConfirmada, List.of(paciente, servicio, fechaHora));
     }
 
     /** Solo se envia si hay una plantilla de cancelacion configurada (app.whatsapp.template-cancelada). */
-    public void enviarCancelacion(String telefono, String paciente, String servicio, String fechaHora) {
-        enviarPlantilla(telefono, plantillaCancelada, List.of(paciente, servicio, fechaHora));
+    public boolean enviarCancelacion(String telefono, String paciente, String servicio, String fechaHora) {
+        return enviarPlantilla(telefono, plantillaCancelada, List.of(paciente, servicio, fechaHora));
     }
 
     /** Plantilla de bienvenida al crear una cuenta, con UNA variable: {{1}} nombre. */
-    public void enviarBienvenida(String telefono, String nombre) {
-        enviarPlantilla(telefono, plantillaBienvenida, List.of(nombre));
+    public boolean enviarBienvenida(String telefono, String nombre) {
+        return enviarPlantilla(telefono, plantillaBienvenida, List.of(nombre));
     }
 
-    private void enviarPlantilla(String telefono, String plantilla, List<String> variables) {
+    /** Devuelve true solo si Meta acepto el mensaje; false si no se envio o fallo (el llamador puede usar un respaldo). */
+    private boolean enviarPlantilla(String telefono, String plantilla, List<String> variables) {
         if (plantilla.isBlank()) {
-            return;
+            return false;
         }
         if (telefono == null || !TELEFONO.matcher(telefono).matches()) {
             log.info("[WhatsApp] No se envia: el paciente no tiene un telefono en formato internacional");
-            return;
+            return false;
         }
         if (!estaActivo()) {
             log.info("[WhatsApp Meta simulado] Plantilla {} para {}", plantilla, telefono);
-            return;
+            return false;
         }
         try {
             List<Map<String, String>> parametros = new ArrayList<>();
@@ -122,9 +123,11 @@ public class WhatsAppCloudService {
                     .retrieve()
                     .toBodilessEntity();
             log.info("[WhatsApp Meta] Plantilla {} enviada a {}", plantilla, telefono);
+            return true;
         } catch (Exception error) {
             // La cita ya se guardo o se cancelo: solo se deja constancia del fallo
             log.warn("[WhatsApp Meta] No se pudo enviar a {}: {}", telefono, error.getMessage());
+            return false;
         }
     }
 

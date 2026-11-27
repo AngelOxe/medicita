@@ -125,12 +125,23 @@ class NotificacionServiceTest {
     @Test
     void conWhatsAppDeMetaActivoSeUsaLaPlantillaYNoElWhatsAppDeTwilio() {
         when(whatsapp.estaActivo()).thenReturn(true);
+        when(whatsapp.enviarConfirmacion(any(), any(), any(), any())).thenReturn(true);
 
         servicio(false).notificarCitaConfirmada(cita);
 
         verify(whatsapp).enviarConfirmacion(eq("+525512345678"), eq("Ana"), eq("Consulta general"), any());
         verify(twilio, never()).enviarWhatsApp(any(), any());
         verify(twilio).enviarSms(eq("+525512345678"), any());
+    }
+
+    @Test
+    void siMetaFallaLaConfirmacionSaleComoRespaldoPorTwilio() {
+        when(whatsapp.estaActivo()).thenReturn(true);
+        when(whatsapp.enviarConfirmacion(any(), any(), any(), any())).thenReturn(false);
+
+        servicio(false).notificarCitaConfirmada(cita);
+
+        verify(twilio).enviarWhatsApp(eq("+525512345678"), any());
     }
 
     @Test

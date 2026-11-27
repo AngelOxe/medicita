@@ -67,10 +67,10 @@ public class NotificacionService {
         enviarCorreo(paciente.getEmail(), "Tu cita en MediCita está confirmada", cuerpo);
         String texto = "MediCita: tu cita de " + cita.getServicio().getNombre()
                 + " quedó confirmada para el " + fecha(cita) + ".";
-        if (whatsapp.estaActivo()) {
-            whatsapp.enviarConfirmacion(paciente.getTelefono(), primerNombre(paciente),
-                    cita.getServicio().getNombre(), fecha(cita));
-        } else {
+        // Meta con plantilla propia; si esta apagado o falla (p. ej. plantilla aun sin aprobar), respaldo con Twilio
+        boolean enviadoPorMeta = whatsapp.estaActivo() && whatsapp.enviarConfirmacion(paciente.getTelefono(),
+                primerNombre(paciente), cita.getServicio().getNombre(), fecha(cita));
+        if (!enviadoPorMeta) {
             twilio.enviarWhatsApp(paciente.getTelefono(), texto);
         }
         twilio.enviarSms(paciente.getTelefono(), texto);
