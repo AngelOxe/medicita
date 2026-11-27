@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Phone, User } from 'lucide-react'
 import AuthShell from '../components/auth/AuthShell'
+import GoogleButton from '../components/auth/GoogleButton'
 import PasswordInput from '../components/auth/PasswordInput'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import { useToast } from '../components/ui/useToast'
+import { useAuth } from '../context/useAuth'
+import { homeByRole } from '../lib/roles'
 import { register } from '../services/authService'
 import { getErrorMessage, getFieldErrors } from '../lib/apiErrors'
 import {
@@ -22,6 +25,7 @@ const EMPTY = { nombre: '', email: '', telefono: '', password: '', confirm: '' }
 export default function Register() {
   const navigate = useNavigate()
   const { show } = useToast()
+  const { loginWithGoogle } = useAuth()
 
   const [values, setValues] = useState(EMPTY)
   const [touched, setTouched] = useState({})
@@ -76,6 +80,18 @@ export default function Register() {
     }
   }
 
+  // Con Google se crea la cuenta (siempre de paciente) y se inicia sesión en el mismo paso
+  const handleGoogle = async (credential) => {
+    setFormError('')
+    try {
+      const usuario = await loginWithGoogle(credential)
+      show('Sesión iniciada con Google. Completa tu teléfono en tu perfil para recibir avisos.', 'success')
+      navigate(homeByRole[usuario.rol] || '/', { replace: true })
+    } catch (error) {
+      setFormError(getErrorMessage(error))
+    }
+  }
+
   return (
     <AuthShell title="Crear cuenta" subtitle="Regístrate para reservar tus citas médicas.">
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -107,6 +123,8 @@ export default function Register() {
         <Button type="submit" loading={loading} className="w-full">
           Crear cuenta
         </Button>
+
+        <GoogleButton onCredential={handleGoogle} onError={setFormError} />
 
         <p className="text-center text-sm text-muted">
           ¿Ya tienes cuenta?{' '}

@@ -57,6 +57,12 @@ export default function Perfil() {
           </div>
         </div>
 
+        {!user.telefono && (
+          <p className="mb-4 rounded-lg bg-warn-bg px-3 py-2 text-sm text-warn">
+            Agrega tu teléfono (por ejemplo +525512345678) para recibir los avisos de tus citas por SMS y WhatsApp.
+          </p>
+        )}
+
         <form onSubmit={guardar} noValidate className="space-y-4">
           {formError && (
             <p role="alert" className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">

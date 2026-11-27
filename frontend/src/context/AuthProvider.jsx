@@ -52,13 +52,23 @@ export default function AuthProvider({ children }) {
     return () => window.removeEventListener('auth:logout', clearSession)
   }, [clearSession])
 
-  const login = useCallback(async (email, password) => {
-    const data = await authService.login(email, password)
+  const startSession = useCallback((data) => {
     localStorage.setItem(TOKEN_KEY, data.token)
     localStorage.setItem(USER_KEY, JSON.stringify(data.usuario))
     setUser(data.usuario)
     return data.usuario
   }, [])
+
+  const login = useCallback(
+    async (email, password) => startSession(await authService.login(email, password)),
+    [startSession],
+  )
+
+  // Google entrega un token; el backend lo verifica y responde con el mismo JWT de la aplicación
+  const loginWithGoogle = useCallback(
+    async (credential) => startSession(await authService.loginConGoogle(credential)),
+    [startSession],
+  )
 
   const logout = useCallback(async () => {
     try {
@@ -76,8 +86,8 @@ export default function AuthProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ user, checking, login, logout, updateUser, isAuthenticated: Boolean(user) }),
-    [user, checking, login, logout, updateUser],
+    () => ({ user, checking, login, loginWithGoogle, logout, updateUser, isAuthenticated: Boolean(user) }),
+    [user, checking, login, loginWithGoogle, logout, updateUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

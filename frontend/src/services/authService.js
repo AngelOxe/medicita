@@ -5,6 +5,17 @@ export async function login(email, password) {
   return data
 }
 
+export async function loginConGoogle(credential) {
+  const { data } = await api.post('/auth/google', { credential })
+  return data
+}
+
+// Pública: dice si el backend tiene configurado el inicio de sesión con Google
+export async function obtenerConfigGoogle() {
+  const { data } = await api.get('/auth/google/config')
+  return data
+}
+
 export async function register(payload) {
   const { data } = await api.post('/auth/register', payload)
   return data
