@@ -71,7 +71,7 @@ export default function Login() {
   }
 
   return (
-    <AuthShell title="Iniciar sesión" subtitle="Ingresa tus datos para acceder a tu cuenta.">
+    <AuthShell title="Iniciar" subtitle="Ingresa tus datos para acceder a tu cuenta.">
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <Input
           label="Correo electrónico"
@@ -109,7 +109,7 @@ export default function Login() {
         )}
 
         <Button type="submit" loading={loading} className="w-full">
-          Iniciar sesión
+          Entrar
         </Button>
 
         <GoogleButton onCredential={handleGoogle} onError={setFormError} />
