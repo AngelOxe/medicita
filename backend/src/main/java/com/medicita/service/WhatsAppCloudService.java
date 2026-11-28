@@ -76,17 +76,52 @@ public class WhatsAppCloudService {
 
     /** Variables de la plantilla de confirmacion: {{1}} paciente, {{2}} servicio, {{3}} fecha y hora. */
     public boolean enviarConfirmacion(String telefono, String paciente, String servicio, String fechaHora) {
-        return enviarPlantilla(telefono, plantillaConfirmada, List.of(paciente, servicio, fechaHora));
+        return enviarPlantilla(telefono, plantillaConfirmada, List.of(paciente, servicio, fechaHora))
+                || enviarTexto(telefono, "Hola " + paciente + ", tu cita de " + servicio + " quedó confirmada para el "
+                        + fechaHora + ". MediCita");
     }
 
     /** Solo se envia si hay una plantilla de cancelacion configurada (app.whatsapp.template-cancelada). */
     public boolean enviarCancelacion(String telefono, String paciente, String servicio, String fechaHora) {
-        return enviarPlantilla(telefono, plantillaCancelada, List.of(paciente, servicio, fechaHora));
+        return enviarPlantilla(telefono, plantillaCancelada, List.of(paciente, servicio, fechaHora))
+                || enviarTexto(telefono, "Hola " + paciente + ", tu cita de " + servicio + " del " + fechaHora
+                        + " fue cancelada. Puedes reservar otra cuando quieras en MediCita.");
     }
 
     /** Plantilla de bienvenida al crear una cuenta, con UNA variable: {{1}} nombre. */
     public boolean enviarBienvenida(String telefono, String nombre) {
-        return enviarPlantilla(telefono, plantillaBienvenida, List.of(nombre));
+        return enviarPlantilla(telefono, plantillaBienvenida, List.of(nombre))
+                || enviarTexto(telefono, "Hola " + nombre + ", tu cuenta en MediCita se creó correctamente. "
+                        + "Ya puedes iniciar sesión y reservar tus citas médicas.");
+    }
+
+    /**
+     * Respaldo sin plantilla: Meta solo acepta texto libre dentro de la ventana de 24 horas que se abre cuando
+     * el usuario escribe primero al numero del negocio. Fuera de esa ventana Meta lo rechaza y solo se registra.
+     */
+    private boolean enviarTexto(String telefono, String texto) {
+        if (telefono == null || !TELEFONO.matcher(telefono).matches() || !estaActivo()) {
+            return false;
+        }
+        try {
+            Map<String, Object> cuerpo = Map.of(
+                    "messaging_product", "whatsapp",
+                    "to", destinoMeta(telefono),
+                    "type", "text",
+                    "text", Map.of("body", texto));
+            cliente.post()
+                    .uri("/{id}/messages", phoneNumberId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(cuerpo)
+                    .retrieve()
+                    .toBodilessEntity();
+            log.info("[WhatsApp Meta] Texto libre enviado a {} (ventana de 24 h abierta)", telefono);
+            return true;
+        } catch (Exception error) {
+            log.warn("[WhatsApp Meta] Texto libre no enviado a {} (el usuario debe escribir primero): {}",
+                    telefono, error.getMessage());
+            return false;
+        }
     }
 
     /** Devuelve true solo si Meta acepto el mensaje; false si no se envio o fallo (el llamador puede usar un respaldo). */

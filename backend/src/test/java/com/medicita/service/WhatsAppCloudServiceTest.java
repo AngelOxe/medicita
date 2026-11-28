@@ -78,8 +78,16 @@ class WhatsAppCloudServiceTest {
         whatsapp(true, "t", "cita_cancelada").enviarCancelacion("+525512345678", "Ana", "Consulta", "hoy");
         servidor.verify();
 
-        // Sin plantilla de cancelacion no se hace ninguna llamada (el servidor falso fallaria si llegara una)
-        whatsapp(true, "t", "").enviarCancelacion("+525512345678", "Ana", "Consulta", "hoy");
+    }
+
+    @Test
+    void sinPlantillaSeIntentaTextoLibreYSiMetaLoRechazaNoSeRompeNada() {
+        servidor.expect(requestTo(URL)).andExpect(jsonPath("$.type").value("text"))
+                .andRespond(withServerError());
+
+        // Sin plantilla de cancelacion se prueba el texto libre; Meta lo rechaza y solo se registra
+        assertFalse(whatsapp(true, "t", "").enviarCancelacion("+525512345678", "Ana", "Consulta", "hoy"));
+        servidor.verify();
     }
 
     @Test
@@ -127,9 +135,25 @@ class WhatsAppCloudServiceTest {
 
     @Test
     void unFalloDeMetaSeRegistraYNoRompeLaOperacion() {
+        // La plantilla falla y tambien el texto libre: no se lanza nada
+        servidor.expect(requestTo(URL)).andRespond(withServerError());
         servidor.expect(requestTo(URL)).andRespond(withServerError());
 
         assertDoesNotThrow(() ->
                 whatsapp(true, "t", "").enviarConfirmacion("+525512345678", "Ana", "Consulta", "hoy"));
+    }
+
+    @Test
+    void siLaPlantillaNoEstaAprobadaSeEnviaTextoLibreEnLaVentanaDe24Horas() {
+        servidor.expect(requestTo(URL)).andExpect(jsonPath("$.type").value("template"))
+                .andRespond(withServerError());
+        servidor.expect(requestTo(URL))
+                .andExpect(jsonPath("$.type").value("text"))
+                .andExpect(jsonPath("$.to").value("5215512345678"))
+                .andExpect(jsonPath("$.text.body").value(org.hamcrest.Matchers.containsString("quedó confirmada")))
+                .andRespond(withSuccess());
+
+        assertTrue(whatsapp(true, "t", "").enviarConfirmacion("+525512345678", "Ana", "Consulta", "hoy"));
+        servidor.verify();
     }
 }
